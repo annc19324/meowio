@@ -91,7 +91,7 @@ class GameRenderer {
       // Mobile zoom out more: base 0.58 down to 0.38 (twice as far view distance!)
       const maxZoom = isMobile ? 0.58 : 0.95;
       const minZoom = isMobile ? 0.38 : 0.65;
-      const targetZoom = Math.max(minZoom, maxZoom - (me.size - 100) * 0.00028);
+      const targetZoom = Math.max(minZoom, maxZoom - (me.size - 100) * 0.00022);
 
       this.camera.zoom += (targetZoom - this.camera.zoom) * 0.08;
     }

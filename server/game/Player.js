@@ -21,9 +21,9 @@ class Player {
 
     // Movement & Boost
     this.isBoosting = false;
-    this.baseSpeed = 280; // Pixels per second (Increased for fast, snappy movement)
-    this.boostMultiplier = 1.7;
-    this.turnSpeed = 9.8; // Radian per second for crisp steering
+    this.baseSpeed = 270; // Base speed for kittens (270 px/s)
+    this.boostMultiplier = 1.75;
+    this.turnSpeed = 10.0; // Base turn speed for agile steering
 
     // Combat & Scratch Mechanics
     this.attackCooldown = 0.45; // Seconds between scratches
@@ -57,7 +57,8 @@ class Player {
     let diff = this.targetAngle - this.angle;
     while (diff < -Math.PI) diff += Math.PI * 2;
     while (diff > Math.PI) diff -= Math.PI * 2;
-    this.angle += Math.sign(diff) * Math.min(Math.abs(diff), this.turnSpeed * dt);
+    const effectiveTurnSpeed = Math.max(7.0, this.turnSpeed - Math.sqrt(Math.max(0, this.size - 100)) * 0.06);
+    this.angle += Math.sign(diff) * Math.min(Math.abs(diff), effectiveTurnSpeed * dt);
 
     // 2. Buff update
     let speedBuff = 1.0;
@@ -73,8 +74,9 @@ class Player {
     }
 
     // 3. Energy & Boost Logic
-    const sizeFactor = Math.max(0.72, 120 / (100 + this.size * 0.06));
-    let currentSpeed = this.baseSpeed * sizeFactor * speedBuff;
+    // Bigger cats move FASTER due to massive stride and titan momentum!
+    const sizeMultiplier = Math.min(1.65, 1.0 + Math.sqrt(Math.max(0, this.size - 100)) * 0.015);
+    let currentSpeed = this.baseSpeed * sizeMultiplier * speedBuff;
     if (this.isBoosting && this.energy > 5) {
       currentSpeed *= this.boostMultiplier;
       this.energy = Math.max(0, this.energy - 35 * dt);
