@@ -394,8 +394,8 @@ class GameEngine {
       minimapToSend = this.cachedMinimap;
     }
 
-    const viewRadiusX = 1300; // Focused Viewport
-    const viewRadiusY = 900;
+    const viewRadiusX = 1600; // Expanded Viewport for Zoomed-Out Mobile View
+    const viewRadiusY = 1100;
 
     for (const [socketId, player] of this.players.entries()) {
       if (!player) continue;
@@ -405,8 +405,8 @@ class GameEngine {
         .filter(c => Math.abs(c.x - player.x) <= viewRadiusX && Math.abs(c.y - player.y) <= viewRadiusY)
         .map(c => c.toJSON());
 
-      // Filter foods (radius 2 cells = 1200px, tight and optimal)
-      const visibleFoods = this.getNearbyFoods(player.x, player.y, 2).map(f => [
+      // Filter foods (radius 3 cells = 1800px)
+      const visibleFoods = this.getNearbyFoods(player.x, player.y, 3).map(f => [
         f.id,
         FOOD_TYPE_MAP[f.type] || 1,
         Math.round(f.x),

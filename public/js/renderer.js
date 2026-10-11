@@ -81,12 +81,18 @@ class GameRenderer {
       this.latestMinimap = gameState.minimap;
     }
 
-    // 1. Follow Local Player smoothly
+    // 1. Follow Local Player smoothly & Dynamic Zoom Out
     const me = gameState.players.find(p => p.id === localPlayerId);
     if (me) {
       this.camera.x += (me.x - this.camera.x) * 0.15;
       this.camera.y += (me.y - this.camera.y) * 0.15;
-      const targetZoom = Math.max(0.68, 1.0 - (me.size - 100) * 0.00035);
+
+      const isMobile = this.width < 900 || this.height < 550;
+      // Mobile zoom out more: base 0.58 down to 0.38 (twice as far view distance!)
+      const maxZoom = isMobile ? 0.58 : 0.95;
+      const minZoom = isMobile ? 0.38 : 0.65;
+      const targetZoom = Math.max(minZoom, maxZoom - (me.size - 100) * 0.00028);
+
       this.camera.zoom += (targetZoom - this.camera.zoom) * 0.08;
     }
 
@@ -675,12 +681,18 @@ class GameRenderer {
   drawMinimap(ctx, mapSize, localPlayerId) {
     if (!this.latestMinimap || this.latestMinimap.length === 0) return;
 
-    const isMobile = this.width < 900;
-    const size = isMobile ? 90 : 120;
-    const margin = 14;
+    const isMobile = this.width < 900 || this.height < 550;
+    const size = isMobile ? 96 : 120;
+    const margin = isMobile ? 8 : 16;
 
-    const x = isMobile ? margin : this.width - size - margin;
-    const y = isMobile ? this.height - size - 170 : this.height - size - margin;
+    // Vị trí nằm ngay dưới Bảng Xếp Hạng (Ranking) ở góc trên bên phải
+    let y = isMobile ? 120 : 260;
+    const lbEl = document.querySelector('.leaderboard');
+    if (lbEl) {
+      const rect = lbEl.getBoundingClientRect();
+      y = rect.bottom + 6;
+    }
+    const x = this.width - size - margin;
 
     ctx.save();
     ctx.fillStyle = 'rgba(20, 26, 45, 0.85)';
