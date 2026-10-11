@@ -414,6 +414,15 @@ canvas#gameCanvas {
   .boost-text {
     font-size: 10px;
   }
+
+  /* On mobile phones, hide vertical menu scrollbar for clean aesthetic */
+  .modal-card {
+    scrollbar-width: none;
+  }
+  .modal-card::-webkit-scrollbar {
+    display: none;
+    width: 0;
+  }
 }
 
 .joystick-zone {
@@ -530,6 +539,28 @@ canvas#gameCanvas {
   gap: 11px;
   text-align: center;
   scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 129, 0.45) rgba(0, 0, 0, 0.3);
+}
+
+.modal-card::-webkit-scrollbar {
+  width: 6px;
+  display: block;
+}
+
+.modal-card::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin: 6px 0;
+}
+
+.modal-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 129, 0.45);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.modal-card::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 /* Logo */
@@ -638,26 +669,79 @@ canvas#gameCanvas {
   text-align: left;
 }
 
-.skin-selector-section label {
+.skin-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.skin-selector-header label {
   font-size: 13px;
   font-weight: 700;
   color: #ced6e0;
+}
+
+.skin-nav-arrows {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-skin-nav {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ced6e0;
+  width: 26px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-skin-nav:hover {
+  background: rgba(255, 107, 129, 0.25);
+  border-color: var(--primary);
+  color: #fff;
 }
 
 .skin-carousel {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 4px 2px;
-  scrollbar-width: none; /* Hide scrollbar Firefox */
-  -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+  padding: 6px 4px 10px 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 107, 129, 0.5) rgba(0, 0, 0, 0.35);
   touch-action: pan-x;
+  user-select: none;
+  cursor: grab;
+}
+
+.skin-carousel.active-drag {
+  cursor: grabbing;
 }
 
 .skin-carousel::-webkit-scrollbar {
-  display: none; /* Hide scrollbar Chrome/Safari */
-  width: 0;
-  height: 0;
+  height: 6px;
+  display: block;
+}
+
+.skin-carousel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  margin: 0 4px;
+}
+
+.skin-carousel::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 129, 0.5);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.skin-carousel::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 .skin-card {

@@ -214,6 +214,68 @@ class UIController {
       this.performDiceRoll();
     });
 
+    // Setup Skin Carousel Navigation & Desktop Glide Scrolling
+    const skinCarousel = document.getElementById('skinCarousel');
+    const btnSkinPrev = document.getElementById('btnSkinPrev');
+    const btnSkinNext = document.getElementById('btnSkinNext');
+
+    if (btnSkinPrev && skinCarousel) {
+      btnSkinPrev.addEventListener('click', () => {
+        skinCarousel.scrollBy({ left: -180, behavior: 'smooth' });
+      });
+    }
+
+    if (btnSkinNext && skinCarousel) {
+      btnSkinNext.addEventListener('click', () => {
+        skinCarousel.scrollBy({ left: 180, behavior: 'smooth' });
+      });
+    }
+
+    if (skinCarousel) {
+      // 1. Mouse wheel converts vertical delta to horizontal scroll on laptop/PC
+      skinCarousel.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+          e.preventDefault();
+          skinCarousel.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+
+      // 2. Mouse click & drag to smoothly glide on laptop
+      let isDown = false;
+      let startX = 0;
+      let scrollLeft = 0;
+      this.hasJustDragged = false;
+
+      skinCarousel.addEventListener('mousedown', (e) => {
+        isDown = true;
+        this.hasJustDragged = false;
+        skinCarousel.classList.add('active-drag');
+        startX = e.pageX - skinCarousel.offsetLeft;
+        scrollLeft = skinCarousel.scrollLeft;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDown) {
+          isDown = false;
+          skinCarousel.classList.remove('active-drag');
+          setTimeout(() => {
+            this.hasJustDragged = false;
+          }, 60);
+        }
+      });
+
+      skinCarousel.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - skinCarousel.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        if (Math.abs(walk) > 5) {
+          this.hasJustDragged = true;
+        }
+        skinCarousel.scrollLeft = scrollLeft - walk;
+      });
+    }
+
     // Wire up Auth Modal & Controls
     this.initAuthUI();
   }
@@ -360,6 +422,7 @@ class UIController {
       `;
 
       card.addEventListener('click', () => {
+        if (this.hasJustDragged) return;
         if (isUnlocked) {
           this.selectedSkin = skin.id;
           this.saveData();
