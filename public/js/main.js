@@ -270,15 +270,17 @@ window.addEventListener('DOMContentLoaded', () => {
     triggerTimedBoost(1500);
   });
 
-  // 6. Mobile Controls
+  // 6. Mobile Controls (Hỗ trợ cả Vuốt/Chạm tay tự do trên màn hình VÀ Nút Joystick)
   const joystickZone = document.getElementById('joystickZone');
   const joystickBase = document.getElementById('joystickBase');
   const joystickStick = document.getElementById('joystickStick');
   const btnMobileBoost = document.getElementById('btnMobileBoost');
 
   let touchId = null;
+  let steerTouchId = null;
   let joyCenter = { x: 0, y: 0 };
 
+  // A. Nút Cần Joystick ảo cố định ở góc
   joystickZone.addEventListener('touchstart', (e) => {
     e.preventDefault();
     const touch = e.changedTouches[0];
@@ -320,7 +322,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const dx = clientX - joyCenter.x;
     const dy = clientY - joyCenter.y;
     const dist = Math.hypot(dx, dy);
-    const maxRadius = 45;
+    const maxRadius = 40;
 
     targetAngle = Math.atan2(dy, dx);
     const clampedDist = Math.min(dist, maxRadius);
@@ -334,6 +336,69 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // B. Dùng tay vuốt/chạm tự do bất kỳ đâu trên màn hình để xoay hướng
+  function handleScreenTouchSteer(touchX, touchY) {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    targetAngle = Math.atan2(touchY - centerY, touchX - centerX);
+
+    // Đồng bộ cần joystick hiển thị xoay theo góc vuốt của tay
+    const maxRadius = 32;
+    const stickX = Math.cos(targetAngle) * maxRadius;
+    const stickY = Math.sin(targetAngle) * maxRadius;
+    joystickStick.style.transform = `translate(${stickX}px, ${stickY}px)`;
+
+    if (gameMode === 'offline') {
+      offlineEngine.setInput(targetAngle, isBoosting);
+    }
+  }
+
+  window.addEventListener('touchstart', (e) => {
+    if (!isGameActive) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      // Bỏ qua nếu chạm vào nút Boost, Joystick hoặc các nút giao diện HUD/Modal
+      if (touch.target.closest('#btnMobileBoost') || 
+          touch.target.closest('#joystickZone') || 
+          touch.target.closest('.hud-panel') || 
+          touch.target.closest('.modal-card')) {
+        continue;
+      }
+      if (steerTouchId === null) {
+        steerTouchId = touch.identifier;
+        handleScreenTouchSteer(touch.clientX, touch.clientY);
+      }
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isGameActive) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      if (touch.identifier === steerTouchId) {
+        handleScreenTouchSteer(touch.clientX, touch.clientY);
+        break;
+      }
+    }
+  }, { passive: false });
+
+  const endScreenTouchSteer = (e) => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      if (touch.identifier === steerTouchId) {
+        steerTouchId = null;
+        if (touchId === null) {
+          joystickStick.style.transform = 'translate(0px, 0px)';
+        }
+        break;
+      }
+    }
+  };
+
+  window.addEventListener('touchend', endScreenTouchSteer, { passive: false });
+  window.addEventListener('touchcancel', endScreenTouchSteer, { passive: false });
+
+  // C. Nút Tăng Tốc Mobile riêng biệt
   btnMobileBoost.addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (!isGameActive) return;
