@@ -9,7 +9,12 @@ const FOOD_TYPE_MAP = {
   'pate': 3,
   'coin': 4,
   'dice': 5,
-  'speed_orb': 6
+  'speed_orb': 6,
+  'magnet_orb': 7,
+  'shield_orb': 8,
+  'catnip_orb': 9,
+  'fish_orb': 10,
+  'star_orb': 11
 };
 
 class GameEngine {
@@ -77,12 +82,17 @@ class GameEngine {
 
     if (!type) {
       const roll = Math.random();
-      if (roll < 0.58) type = 'light_small';
-      else if (roll < 0.78) type = 'light_big';
-      else if (roll < 0.86) type = 'speed_orb'; // ⚡ Hạt Tốc Độ
-      else if (roll < 0.92) type = 'pate';
-      else if (roll < 0.96) type = 'coin';
-      else type = 'dice';
+      if (roll < 0.46) type = 'light_small';          // 46% Hạt nhỏ
+      else if (roll < 0.66) type = 'light_big';        // 20% Hạt to
+      else if (roll < 0.74) type = 'speed_orb';        // 8%  ⚡ Hạt tốc độ
+      else if (roll < 0.80) type = 'magnet_orb';       // 6%  🧲 Nam châm hút hạt
+      else if (roll < 0.85) type = 'shield_orb';       // 5%  🛡️ Khiên bảo vệ
+      else if (roll < 0.90) type = 'pate';             // 5%  🥫 Hộp pate
+      else if (roll < 0.94) type = 'catnip_orb';       // 4%  🌿 Cỏ mèo cuồng nộ
+      else if (roll < 0.97) type = 'fish_orb';         // 3%  🐟 Cá vàng béo ngậy
+      else if (roll < 0.985) type = 'coin';            // 1.5% 🪙 Đồng vàng
+      else if (roll < 0.995) type = 'dice';            // 1%  🎲 Xúc xắc
+      else type = 'star_orb';                          // 0.5% ⭐ Ngôi sao bất tử
     }
 
     const margin = 120;
@@ -157,6 +167,34 @@ class GameEngine {
     // 2. Update physics
     for (const cat of allCats) {
       cat.update(dt, this.mapSize);
+    }
+
+    // 2.5 Update Magnet Pull for cats with magnet buff
+    for (const cat of allCats) {
+      if (cat.alive && cat.buff && cat.buff.type === 'magnet') {
+        const pullRadius = 340;
+        const pullRadiusSq = pullRadius * pullRadius;
+        const candidateFoods = this.getNearbyFoods(cat.x, cat.y, 1);
+        for (const food of candidateFoods) {
+          const dx = cat.x - food.x;
+          const dy = cat.y - food.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq > 0 && distSq < pullRadiusSq) {
+            const dist = Math.sqrt(distSq);
+            const pullSpeed = 420 * dt;
+            const oldKey = this.getCellKey(food.x, food.y);
+            food.x += (dx / dist) * pullSpeed;
+            food.y += (dy / dist) * pullSpeed;
+            const newKey = this.getCellKey(food.x, food.y);
+            if (oldKey !== newKey) {
+              const oldCell = this.foodGrid.get(oldKey);
+              if (oldCell) oldCell.delete(food);
+              if (!this.foodGrid.has(newKey)) this.foodGrid.set(newKey, new Set());
+              this.foodGrid.get(newKey).add(food);
+            }
+          }
+        }
+      }
     }
 
     // 3. Scratch attacks between players
@@ -268,6 +306,13 @@ class GameEngine {
             damage = Math.max(3, Math.round(baseDamage * 0.2));
           }
 
+          // Buff damage boost (Catnip +50%, Super Star +100%)
+          if (attacker.buff && attacker.buff.type === 'catnip') {
+            damage = Math.round(damage * 1.5);
+          } else if (attacker.buff && attacker.buff.type === 'star') {
+            damage = Math.round(damage * 2.0);
+          }
+
           const result = victim.takeDamage(damage, attacker);
 
           const hitX = Math.round(attacker.x + Math.cos(attacker.angle) * (attackerRadius + 15));
@@ -341,10 +386,61 @@ class GameEngine {
           } else if (food.type === 'speed_orb') {
             cat.size += food.value;
             cat.energy = 100;
-            cat.buff = { type: 'speed', duration: 4.5 };
+            cat.buff = { type: 'speed', duration: 5 };
             cat.gold += 2;
             this.events.push({
               type: 'eat_speed_orb',
+              playerId: cat.id,
+              x: food.x,
+              y: food.y
+            });
+          } else if (food.type === 'magnet_orb') {
+            cat.size += food.value;
+            cat.buff = { type: 'magnet', duration: 7 };
+            cat.gold += 2;
+            this.events.push({
+              type: 'eat_magnet_orb',
+              playerId: cat.id,
+              x: food.x,
+              y: food.y
+            });
+          } else if (food.type === 'shield_orb') {
+            cat.size += food.value;
+            cat.shieldHits = Math.min(4, cat.shieldHits + 2);
+            cat.gold += 2;
+            this.events.push({
+              type: 'eat_shield_orb',
+              playerId: cat.id,
+              x: food.x,
+              y: food.y
+            });
+          } else if (food.type === 'catnip_orb') {
+            cat.size += food.value;
+            cat.hp = Math.min(cat.maxHp, cat.hp + food.heal);
+            cat.buff = { type: 'catnip', duration: 6 };
+            cat.gold += 3;
+            this.events.push({
+              type: 'eat_catnip_orb',
+              playerId: cat.id,
+              x: food.x,
+              y: food.y
+            });
+          } else if (food.type === 'fish_orb') {
+            cat.size += food.value;
+            cat.hp = Math.min(cat.maxHp, cat.hp + food.heal);
+            cat.gold += food.gold;
+            this.events.push({
+              type: 'eat_fish_orb',
+              playerId: cat.id,
+              x: food.x,
+              y: food.y
+            });
+          } else if (food.type === 'star_orb') {
+            cat.size += food.value;
+            cat.buff = { type: 'star', duration: 5 };
+            cat.gold += food.gold;
+            this.events.push({
+              type: 'eat_star_orb',
               playerId: cat.id,
               x: food.x,
               y: food.y
@@ -381,6 +477,12 @@ class GameEngine {
     }
     if (Math.random() < 0.5) {
       this.spawnFood('coin', cat.x + 20, cat.y - 15);
+    }
+    // 35% chance to drop a random special orb on death
+    if (Math.random() < 0.35) {
+      const specialTypes = ['fish_orb', 'catnip_orb', 'magnet_orb', 'shield_orb', 'speed_orb'];
+      const chosen = specialTypes[Math.floor(Math.random() * specialTypes.length)];
+      this.spawnFood(chosen, cat.x - 20, cat.y + 20);
     }
   }
 

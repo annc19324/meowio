@@ -249,7 +249,43 @@ window.addEventListener('DOMContentLoaded', () => {
       else if (ev.type === 'eat_speed_orb') {
         if (ev.playerId === localPlayerId) {
           sound.playBoost();
+          ui.showBuffBanner('speed');
           if (me) renderer.addFloatingText('⚡ TỐC ĐỘ (+100% NĂNG LƯỢNG)!', me.x, me.y, '#f1c40f', 18);
+        }
+      }
+      else if (ev.type === 'eat_magnet_orb') {
+        if (ev.playerId === localPlayerId) {
+          sound.playMagnet();
+          ui.showBuffBanner('magnet');
+          if (me) renderer.addFloatingText('🧲 NAM CHÂM HÚT HẠT (7s)!', me.x, me.y, '#a55eea', 18);
+        }
+      }
+      else if (ev.type === 'eat_shield_orb') {
+        if (ev.playerId === localPlayerId) {
+          sound.playShield();
+          ui.showBuffBanner('shield');
+          if (me) renderer.addFloatingText('🛡️ KHIÊN HỘ THỂ x2!', me.x, me.y, '#3498db', 18);
+        }
+      }
+      else if (ev.type === 'eat_catnip_orb') {
+        if (ev.playerId === localPlayerId) {
+          sound.playCatnip();
+          ui.showBuffBanner('catnip');
+          if (me) renderer.addFloatingText('🌿 CỎ MÈO CUỒNG NỘ (+50% DMG, CÀO SIÊU TỐC)!', me.x, me.y, '#2ed573', 18);
+        }
+      }
+      else if (ev.type === 'eat_fish_orb') {
+        if (ev.playerId === localPlayerId) {
+          sound.playFish();
+          ui.showBuffBanner('fish');
+          if (me) renderer.addFloatingText('🐟 CÁ VÀNG BÉO (+80 SIZE & +35 HP)!', me.x, me.y, '#ff793f', 19);
+        }
+      }
+      else if (ev.type === 'eat_star_orb') {
+        if (ev.playerId === localPlayerId) {
+          sound.playStar();
+          ui.showBuffBanner('star');
+          if (me) renderer.addFloatingText('⭐ SIÊU SAO BẤT TỬ (5s)!', me.x, me.y, '#f1c40f', 20);
         }
       }
     }

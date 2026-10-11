@@ -181,7 +181,12 @@ class GameRenderer {
         fy = f[3];
         radius = f[4];
       } else {
-        typeCode = f.t === 'light_small' ? 1 : f.t === 'light_big' ? 2 : f.t === 'pate' ? 3 : f.t === 'coin' ? 4 : 5;
+        const typeMap = {
+          'light_small': 1, 'light_big': 2, 'pate': 3, 'coin': 4,
+          'dice': 5, 'speed_orb': 6, 'magnet_orb': 7, 'shield_orb': 8,
+          'catnip_orb': 9, 'fish_orb': 10, 'star_orb': 11
+        };
+        typeCode = typeof f.t === 'number' ? f.t : (typeMap[f.t] || 1);
         fx = f.x;
         fy = f.y;
         radius = f.r;
@@ -306,6 +311,119 @@ class GameRenderer {
           ctx.fillText('⚡', fx, fy);
           break;
         }
+
+        case 7: { // magnet_orb 🧲 Hạt Nam Châm Hút Hạt
+          const magWave = (Math.sin(animTime * 6 + fx) + 1) * 0.5;
+          ctx.fillStyle = `rgba(165, 94, 234, ${0.25 + magWave * 0.25})`;
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * (1.5 + magWave * 0.4), 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#8e44ad';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 12px Fredoka';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🧲', fx, fy);
+          break;
+        }
+
+        case 8: { // shield_orb 🛡️ Hạt Khiên Bảo Vệ
+          const shieldWave = (Math.sin(animTime * 5 + fy) + 1) * 0.5;
+          ctx.fillStyle = `rgba(52, 152, 219, ${0.3 + shieldWave * 0.25})`;
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * (1.5 + shieldWave * 0.3), 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#2980b9';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#74b9ff';
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 12px Fredoka';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🛡️', fx, fy);
+          break;
+        }
+
+        case 9: { // catnip_orb 🌿 Cỏ Mèo Cuồng Nộ
+          const catnipPulse = (Math.sin(animTime * 7 + fx * 0.1) + 1) * 0.5;
+          ctx.fillStyle = `rgba(46, 213, 115, ${0.35 + catnipPulse * 0.3})`;
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * (1.6 + catnipPulse * 0.3), 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#27ae60';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 13px Fredoka';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🌿', fx, fy);
+          break;
+        }
+
+        case 10: { // fish_orb 🐟 Cá Vàng Béo Ngậy
+          const fishBob = Math.sin(animTime * 5 + fx) * 2;
+          ctx.fillStyle = 'rgba(255, 121, 63, 0.45)';
+          ctx.beginPath();
+          ctx.arc(fx, fy + fishBob, radius * 1.6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#e67e22';
+          ctx.beginPath();
+          ctx.arc(fx, fy + fishBob, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#f39c12';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 15px Fredoka';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🐟', fx, fy + fishBob);
+          break;
+        }
+
+        case 11: { // star_orb ⭐ Siêu Sao Bất Tử
+          const starHue = (animTime * 200 + fx) % 360;
+          const starGlow = (Math.sin(animTime * 8) + 1) * 0.5;
+          ctx.fillStyle = `hsla(${starHue}, 100%, 65%, ${0.45 + starGlow * 0.35})`;
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * (1.8 + starGlow * 0.4), 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#f1c40f';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 14px Fredoka';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⭐', fx, fy);
+          break;
+        }
       }
     }
   }
@@ -330,10 +448,55 @@ class GameRenderer {
 
     // Shield bubble
     if (cat.shieldHits > 0) {
-      ctx.strokeStyle = 'rgba(112, 161, 255, 0.8)';
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(112, 161, 255, 0.85)';
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
       ctx.arc(0, 0, r * 1.3, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(112, 161, 255, 0.15)';
+      ctx.fill();
+
+      if (cat.shieldHits > 1) {
+        ctx.fillStyle = '#70a1ff';
+        ctx.font = 'bold 12px Fredoka';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`🛡️x${cat.shieldHits}`, 0, -r * 1.45);
+      }
+    }
+
+    // Active Buff Auras
+    if (cat.buff) {
+      if (cat.buff.type === 'magnet') {
+        const pulse = (Math.sin(animTime * 7) + 1) * 0.5;
+        ctx.strokeStyle = `rgba(165, 94, 234, ${0.5 + pulse * 0.35})`;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([7, 5]);
+        ctx.beginPath();
+        ctx.arc(0, 0, r * (1.35 + pulse * 0.25), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (cat.buff.type === 'catnip') {
+        const pulse = (Math.sin(animTime * 10) + 1) * 0.5;
+        ctx.strokeStyle = `rgba(46, 213, 115, ${0.7 + pulse * 0.3})`;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * (1.28 + pulse * 0.15), 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (cat.buff.type === 'star') {
+        const hue = (animTime * 320) % 360;
+        ctx.strokeStyle = `hsl(${hue}, 100%, 65%)`;
+        ctx.lineWidth = 4.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 1.35, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    } else if (cat.hasSpeedBuff) {
+      ctx.strokeStyle = 'rgba(241, 196, 15, 0.75)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.22, 0, Math.PI * 2);
       ctx.stroke();
     }
 

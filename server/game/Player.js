@@ -64,6 +64,9 @@ class Player {
     if (this.buff) {
       this.buff.duration -= dt;
       if (this.buff.type === 'speed') speedBuff = 1.35;
+      else if (this.buff.type === 'star') speedBuff = 1.5;
+      else if (this.buff.type === 'catnip') speedBuff = 1.15;
+
       if (this.buff.duration <= 0) {
         this.buff = null;
       }
@@ -102,7 +105,8 @@ class Player {
   }
 
   canScratch() {
-    return this.alive && this.timeSinceLastAttack >= this.attackCooldown;
+    const cd = (this.buff && this.buff.type === 'catnip') ? 0.22 : this.attackCooldown;
+    return this.alive && this.timeSinceLastAttack >= cd;
   }
 
   performScratch() {
@@ -113,6 +117,11 @@ class Player {
 
   takeDamage(amount, attacker) {
     if (!this.alive) return false;
+
+    // Super Star invincibility
+    if (this.buff && this.buff.type === 'star') {
+      return { absorbed: true, damage: 0, killed: false };
+    }
 
     // Shield check
     if (this.shieldHits > 0) {
@@ -172,7 +181,8 @@ class Player {
       isBoosting: this.isBoosting,
       isScratching: this.isScratching,
       shieldHits: this.shieldHits,
-      hasSpeedBuff: this.buff && this.buff.type === 'speed',
+      buff: this.buff ? { type: this.buff.type, duration: Number(this.buff.duration.toFixed(1)) } : null,
+      hasSpeedBuff: this.buff && (this.buff.type === 'speed' || this.buff.type === 'star'),
       gold: this.gold,
       diceCount: this.diceCount,
       isBot: this.isBot

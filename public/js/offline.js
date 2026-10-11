@@ -124,18 +124,28 @@ class OfflineEngine {
     let radius = 6;
     let val = 5;
 
-    if (roll < 0.58) {
-      typeCode = 1; radius = 6; val = 5;
-    } else if (roll < 0.78) {
-      typeCode = 2; radius = 11; val = 20;
-    } else if (roll < 0.86) {
-      typeCode = 6; radius = 12; val = 10; // ⚡ Hạt Tốc Độ
-    } else if (roll < 0.92) {
-      typeCode = 3; radius = 16; val = 50;
-    } else if (roll < 0.96) {
-      typeCode = 4; radius = 10; val = 15;
+    if (roll < 0.46) {
+      typeCode = 1; radius = 6; val = 5; // Hạt sáng nhỏ
+    } else if (roll < 0.66) {
+      typeCode = 2; radius = 11; val = 20; // Hạt sáng lớn
+    } else if (roll < 0.74) {
+      typeCode = 6; radius = 12; val = 10; // ⚡ Hạt tốc độ
+    } else if (roll < 0.80) {
+      typeCode = 7; radius = 13; val = 15; // 🧲 Nam châm
+    } else if (roll < 0.85) {
+      typeCode = 8; radius = 13; val = 15; // 🛡️ Khiên bảo vệ
+    } else if (roll < 0.90) {
+      typeCode = 3; radius = 16; val = 50; // 🥫 Hộp pate
+    } else if (roll < 0.94) {
+      typeCode = 9; radius = 14; val = 25; // 🌿 Cỏ mèo
+    } else if (roll < 0.97) {
+      typeCode = 10; radius = 17; val = 80; // 🐟 Cá vàng
+    } else if (roll < 0.985) {
+      typeCode = 4; radius = 10; val = 15; // 🪙 Đồng vàng
+    } else if (roll < 0.995) {
+      typeCode = 5; radius = 14; val = 0; // 🎲 Xúc xắc
     } else {
-      typeCode = 5; radius = 14; val = 0;
+      typeCode = 11; radius = 16; val = 35; // ⭐ Siêu sao bất tử
     }
 
     const margin = 100;
@@ -173,8 +183,18 @@ class OfflineEngine {
       while (diff > Math.PI) diff -= Math.PI * 2;
       cat.angle += Math.sign(diff) * Math.min(Math.abs(diff), 8.5 * dt);
 
+      // Buff update
+      let speedBuff = 1.0;
+      if (cat.buff) {
+        cat.buff.duration -= dt;
+        if (cat.buff.type === 'speed') speedBuff = 1.35;
+        else if (cat.buff.type === 'star') speedBuff = 1.5;
+        else if (cat.buff.type === 'catnip') speedBuff = 1.15;
+        if (cat.buff.duration <= 0) cat.buff = null;
+      }
+
       // Speed & Boost
-      let speed = 190 * (120 / (100 + cat.size * 0.15));
+      let speed = 190 * (120 / (100 + cat.size * 0.15)) * speedBuff;
       if (cat.isBoosting && cat.energy > 5) {
         speed *= 1.75;
         cat.energy = Math.max(0, cat.energy - 35 * dt);
@@ -223,6 +243,23 @@ class OfflineEngine {
       }
     }
 
+    // Magnet Pull Effect
+    for (const cat of allCats) {
+      if (cat.buff && cat.buff.type === 'magnet') {
+        const pullRange = 320;
+        for (let j = 0; j < this.foods.length; j++) {
+          const f = this.foods[j];
+          const dx = cat.x - f[2];
+          const dy = cat.y - f[3];
+          const dist = Math.hypot(dx, dy);
+          if (dist > 0 && dist < pullRange) {
+            f[2] += (dx / dist) * 400 * dt;
+            f[3] += (dy / dist) * 400 * dt;
+          }
+        }
+      }
+    }
+
     // 2. Combat Scratch Hits
     for (const attacker of allCats) {
       if (attacker.timeSinceAttack < 0.45) continue;
@@ -247,9 +284,22 @@ class OfflineEngine {
           attacker.scratchTimer = 0.25;
 
           const ratio = attacker.size / victim.size;
-          const damage = ratio >= 1.0 ? Math.round(18 * Math.min(2.5, ratio)) : Math.max(3, Math.round(18 * ratio * 0.7));
+          let damage = ratio >= 1.0 ? Math.round(18 * Math.min(2.5, ratio)) : Math.max(3, Math.round(18 * ratio * 0.7));
 
-          victim.hp = Math.max(0, victim.hp - damage);
+          if (attacker.buff && attacker.buff.type === 'catnip') damage = Math.round(damage * 1.5);
+          else if (attacker.buff && attacker.buff.type === 'star') damage = Math.round(damage * 2.0);
+
+          let absorbed = false;
+          if (victim.buff && victim.buff.type === 'star') {
+            damage = 0;
+            absorbed = true;
+          } else if (victim.shieldHits > 0) {
+            victim.shieldHits--;
+            damage = 0;
+            absorbed = true;
+          } else {
+            victim.hp = Math.max(0, victim.hp - damage);
+          }
 
           const hitX = Math.round(attacker.x + Math.cos(attacker.angle) * (attRadius + 15));
           const hitY = Math.round(attacker.y + Math.sin(attacker.angle) * (attRadius + 15));
@@ -259,10 +309,11 @@ class OfflineEngine {
             attackerId: attacker.id,
             victimId: victim.id,
             damage: damage,
+            absorbed: absorbed,
             hitX, hitY
           });
 
-          if (victim.hp <= 0) {
+          if (victim.hp <= 0 && !absorbed) {
             victim.alive = false;
             attacker.size += Math.round(victim.size * 0.35);
             attacker.gold = (attacker.gold || 0) + 35;
@@ -313,8 +364,39 @@ class OfflineEngine {
         else if (type === 6) {
           this.player.size += 10;
           this.player.energy = 100;
-          this.player.buff = { type: 'speed', duration: 4.5 };
+          this.player.buff = { type: 'speed', duration: 5 };
           this.events.push({ type: 'eat_speed_orb', playerId: this.player.id, x: f[2], y: f[3] });
+        }
+        else if (type === 7) {
+          this.player.size += 15;
+          this.player.buff = { type: 'magnet', duration: 7 };
+          this.player.gold += 2;
+          this.events.push({ type: 'eat_magnet_orb', playerId: this.player.id, x: f[2], y: f[3] });
+        }
+        else if (type === 8) {
+          this.player.size += 15;
+          this.player.shieldHits = Math.min(4, (this.player.shieldHits || 0) + 2);
+          this.player.gold += 2;
+          this.events.push({ type: 'eat_shield_orb', playerId: this.player.id, x: f[2], y: f[3] });
+        }
+        else if (type === 9) {
+          this.player.size += 25;
+          this.player.hp = Math.min(100, this.player.hp + 20);
+          this.player.buff = { type: 'catnip', duration: 6 };
+          this.player.gold += 3;
+          this.events.push({ type: 'eat_catnip_orb', playerId: this.player.id, x: f[2], y: f[3] });
+        }
+        else if (type === 10) {
+          this.player.size += 80;
+          this.player.hp = Math.min(100, this.player.hp + 35);
+          this.player.gold += 10;
+          this.events.push({ type: 'eat_fish_orb', playerId: this.player.id, x: f[2], y: f[3] });
+        }
+        else if (type === 11) {
+          this.player.size += 35;
+          this.player.buff = { type: 'star', duration: 5 };
+          this.player.gold += 15;
+          this.events.push({ type: 'eat_star_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
 
         this.foods.splice(i, 1);
@@ -338,6 +420,8 @@ class OfflineEngine {
       isBoosting: c.isBoosting,
       isScratching: c.isScratching,
       shieldHits: c.shieldHits,
+      buff: c.buff ? { type: c.buff.type, duration: Number(c.buff.duration.toFixed(1)) } : null,
+      hasSpeedBuff: c.buff && (c.buff.type === 'speed' || c.buff.type === 'star'),
       gold: c.gold,
       diceCount: c.diceCount
     }));

@@ -31,6 +31,30 @@ class Food {
         this.radius = 12;
         this.speedBoost = true;
         break;
+      case 'magnet_orb': // 🧲 Hạt Nam Châm Hút Hạt
+        this.value = 15;
+        this.radius = 13;
+        break;
+      case 'shield_orb': // 🛡️ Hạt Khiên Bảo Vệ
+        this.value = 15;
+        this.radius = 13;
+        break;
+      case 'catnip_orb': // 🌿 Cỏ Mèo Thần Kỳ (Cuồng nộ)
+        this.value = 25;
+        this.heal = 20;
+        this.radius = 14;
+        break;
+      case 'fish_orb': // 🐟 Cá Vàng Béo Ngậy
+        this.value = 80;
+        this.heal = 35;
+        this.gold = 10;
+        this.radius = 17;
+        break;
+      case 'star_orb': // ⭐ Siêu Sao Bất Tử
+        this.value = 35;
+        this.gold = 15;
+        this.radius = 16;
+        break;
       default:
         this.value = 5;
         this.radius = 6;

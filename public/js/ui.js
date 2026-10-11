@@ -572,9 +572,13 @@ class UIController {
   showBuffBanner(buffType) {
     const banner = this.buffBanner;
     let text = '🎲 NHẬN BUFF ĐẶC BIỆT!';
-    if (buffType === 'speed') text = '⚡ BUFF: TĂNG TỐC 135% (7s)!';
-    if (buffType === 'heal') text = '❤️ BUFF: HỒI PHỤC 50 HP!';
+    if (buffType === 'speed') text = '⚡ BUFF: TĂNG TỐC 135% (5s)!';
+    if (buffType === 'magnet') text = '🧲 BUFF: NAM CHÂM HÚT HẠT (7s)!';
+    if (buffType === 'catnip') text = '🌿 BUFF: CỎ MÈO CUỒNG NỘ (+50% DMG, CÀO SIÊU TỐC)!';
+    if (buffType === 'fish') text = '🐟 BUFF: CÁ VÀNG BÉO (+80 SIZE & +35 HP)!';
+    if (buffType === 'star') text = '⭐ BUFF: SIÊU SAO BẤT TỬ (BẤT KHẢ XÂM PHẠM 5s)!';
     if (buffType === 'shield') text = '🛡️ BUFF: LÁ CHẮN ĐỠ 2 ĐÒN CÀO!';
+    if (buffType === 'heal') text = '❤️ BUFF: HỒI PHỤC 50 HP!';
     if (buffType === 'size') text = '📏 BUFF: PHÌNH TO SIZE +15%!';
     if (buffType === 'gold') text = '🪙 BUFF: KHO BÁU +50 VÀNG!';
 
