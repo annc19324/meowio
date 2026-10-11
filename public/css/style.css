@@ -285,67 +285,71 @@ canvas#gameCanvas {
     display: block;
   }
 
-  /* Compact Player Status Panel on Mobile */
+  /* Balanced Player Status Panel on Mobile */
   .player-status {
     top: 8px;
     left: 8px;
-    width: 155px;
-    padding: 6px 10px;
-    gap: 4px;
-    border-radius: 12px;
+    width: 195px;
+    padding: 8px 10px;
+    gap: 5px;
+    border-radius: 14px;
   }
 
   .status-header {
-    gap: 6px;
+    gap: 8px;
   }
 
   .player-avatar {
-    font-size: 20px;
+    font-size: 22px;
     padding: 2px;
     border-width: 1.5px;
   }
 
   .player-name {
-    font-size: 11px;
+    font-size: 13px;
+    font-weight: 700;
   }
 
   .player-tier {
-    font-size: 9px;
+    font-size: 10px;
   }
 
   .bar-container {
-    gap: 4px;
-    font-size: 8px;
+    gap: 6px;
+    font-size: 10px;
   }
 
   .bar-label {
-    width: 44px;
-    font-size: 8px;
+    width: 50px;
+    font-size: 9.5px;
+    font-weight: 700;
   }
 
   .bar-track {
-    height: 7px;
+    height: 10px;
+    border-radius: 5px;
   }
 
   .bar-value {
-    width: 32px;
-    font-size: 8px;
+    width: 42px;
+    font-size: 9.5px;
+    font-weight: 700;
   }
 
   .match-loot {
-    font-size: 10px;
+    font-size: 11px;
     padding-top: 2px;
   }
 
   .mode-tag {
-    font-size: 8px;
-    padding: 1px 4px;
+    font-size: 9px;
+    padding: 1px 5px;
   }
 
   .btn-hud-surrender {
-    font-size: 9px;
-    padding: 3px 6px;
-    margin-top: 2px;
+    font-size: 10px;
+    padding: 4px 8px;
+    margin-top: 3px;
   }
 
   /* Compact Leaderboard Panel on Mobile */
@@ -484,39 +488,48 @@ canvas#gameCanvas {
 /* =========================================
    MODAL DIALOGS (MENU, GAME OVER, SHOP)
 ========================================= */
+.hidden {
+  display: none !important;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(10, 15, 30, 0.78);
+  background: rgba(10, 15, 30, 0.82);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 16px;
-}
-
-.modal-overlay.hidden {
-  display: none !important;
+  padding: 12px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .modal-card {
   background: var(--card-bg);
-  border-radius: 24px;
-  border: 2px solid rgba(255, 107, 129, 0.3);
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 107, 129, 0.3);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(255, 107, 129, 0.15);
   color: #fff;
   width: 100%;
-  max-width: 480px;
-  padding: 24px 28px;
+  max-width: 420px;
+  margin: auto;
+  max-height: 93vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 11px;
   text-align: center;
+  scrollbar-width: thin;
 }
 
 /* Logo */
@@ -633,32 +646,41 @@ canvas#gameCanvas {
 
 .skin-carousel {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
-  padding: 6px 2px;
-  scrollbar-width: thin;
+  padding: 4px 2px;
+  scrollbar-width: none; /* Hide scrollbar Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+  touch-action: pan-x;
+}
+
+.skin-carousel::-webkit-scrollbar {
+  display: none; /* Hide scrollbar Chrome/Safari */
+  width: 0;
+  height: 0;
 }
 
 .skin-card {
-  min-width: 80px;
-  height: 96px;
+  min-width: 68px;
+  height: 80px;
   background: rgba(0, 0, 0, 0.35);
-  border-radius: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
   transition: all 0.15s ease-out;
   position: relative;
+  flex-shrink: 0;
 }
 
 .skin-card.selected {
   border-color: var(--primary);
   background: rgba(255, 107, 129, 0.2);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 107, 129, 0.35);
 }
 
@@ -667,11 +689,11 @@ canvas#gameCanvas {
 }
 
 .skin-icon {
-  font-size: 32px;
+  font-size: 26px;
 }
 
 .skin-name {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: #dfe4ea;
 }
@@ -987,25 +1009,17 @@ canvas#gameCanvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 12px;
-  border-radius: 14px;
+  padding: 6px 12px;
+  border-radius: 12px;
 }
 
 .account-info {
   display: flex;
   align-items: center;
-  gap: 8px;
   overflow: hidden;
-}
-
-.account-avatar {
-  font-size: 18px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px;
-  border-radius: 50%;
 }
 
 .account-name {
@@ -1027,9 +1041,9 @@ canvas#gameCanvas {
   background: linear-gradient(135deg, #70a1ff, #1e90ff);
   border: none;
   color: #fff;
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(30, 144, 255, 0.35);
@@ -1045,7 +1059,7 @@ canvas#gameCanvas {
   background: rgba(255, 71, 87, 0.2);
   border: 1px solid rgba(255, 71, 87, 0.4);
   color: #ff6b81;
-  padding: 5px 10px;
+  padding: 4px 9px;
   border-radius: 8px;
   font-size: 11px;
   font-weight: 700;
@@ -1058,27 +1072,29 @@ canvas#gameCanvas {
 }
 
 .auth-card {
-  max-width: 420px;
+  max-width: 320px;
+  padding: 16px 18px;
+  gap: 11px;
 }
 
 .auth-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   background: rgba(0, 0, 0, 0.4);
-  padding: 5px;
-  border-radius: 14px;
+  padding: 3px;
+  border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .auth-tab {
   flex: 1;
-  padding: 9px 12px;
+  padding: 6px 10px;
   border: none;
   background: transparent;
   color: #a4b0be;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease-out;
 }
@@ -1086,20 +1102,36 @@ canvas#gameCanvas {
 .auth-tab.active {
   background: linear-gradient(135deg, var(--primary), #ee5253);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(255, 107, 129, 0.35);
+  box-shadow: 0 3px 10px rgba(255, 107, 129, 0.35);
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   text-align: left;
 }
 
-.auth-message {
-  padding: 8px 12px;
+.auth-form .input-group {
+  gap: 4px;
+}
+
+.auth-form .input-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ced6e0;
+}
+
+.auth-form .input-group input {
+  padding: 8px 11px;
   border-radius: 10px;
   font-size: 13px;
+}
+
+.auth-message {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 700;
   text-align: center;
 }
@@ -1118,8 +1150,14 @@ canvas#gameCanvas {
 
 .auth-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.auth-actions button {
+  padding: 9px 12px;
+  font-size: 13px;
+  border-radius: 10px;
 }
 
 

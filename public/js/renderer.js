@@ -745,27 +745,29 @@ class GameRenderer {
   drawOverheadHUD(ctx, cat, isLocalPlayer) {
     const r = cat.radius;
     const overheadY = -r * 1.35;
+    const isMobile = this.width < 900 || this.height < 550;
 
+    const fontSize = isMobile ? Math.max(13, r * 0.4) : Math.max(12, r * 0.35);
     ctx.fillStyle = isLocalPlayer ? '#ff6b81' : '#ffffff';
-    ctx.font = 'bold 12px Fredoka, Nunito';
+    ctx.font = `bold ${fontSize}px Fredoka, Nunito`;
     ctx.textAlign = 'center';
-    ctx.fillText(`${cat.name} (${cat.size})`, cat.x, cat.y + overheadY - 7);
+    ctx.fillText(`${cat.name} (${cat.size})`, cat.x, cat.y + overheadY - 8);
 
     // HP Bar
-    const barW = Math.max(45, r * 1.3);
-    const barH = 5;
+    const barW = Math.max(isMobile ? 54 : 46, r * 1.35);
+    const barH = isMobile ? 6 : 5;
     const barX = cat.x - barW / 2;
     const barY = cat.y + overheadY;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
     ctx.beginPath();
-    ctx.roundRect(barX, barY, barW, barH, 2);
+    ctx.roundRect(barX, barY, barW, barH, 2.5);
     ctx.fill();
 
     const hpRatio = Math.max(0, cat.hp / cat.maxHp);
     ctx.fillStyle = hpRatio > 0.4 ? '#2ed573' : '#ff4757';
     ctx.beginPath();
-    ctx.roundRect(barX, barY, barW * hpRatio, barH, 2);
+    ctx.roundRect(barX, barY, barW * hpRatio, barH, 2.5);
     ctx.fill();
   }
 

@@ -23,24 +23,22 @@ const SKINS_CATALOG = [
 
 class UIController {
   constructor() {
-    let savedName = localStorage.getItem('meow_player_name');
-    if (!savedName || savedName === 'undefined' || savedName === 'null' || savedName.trim() === '') {
-      savedName = 'Mèo Hiệp Sĩ';
-    }
-    this.playerName = savedName;
-
     this.currentUser = null;
     try {
       const storedAcc = localStorage.getItem('meow_user_account');
       if (storedAcc && storedAcc !== 'undefined') {
         this.currentUser = JSON.parse(storedAcc);
-        if (this.currentUser && this.currentUser.username) {
-          this.playerName = this.currentUser.username;
-        }
       }
     } catch (e) {
       this.currentUser = null;
     }
+
+    // Always prioritize the last explicitly typed player name
+    let savedName = localStorage.getItem('meow_player_name');
+    if (!savedName || savedName === 'undefined' || savedName === 'null' || savedName.trim() === '') {
+      savedName = (this.currentUser && this.currentUser.username) ? this.currentUser.username : 'Mèo Hiệp Sĩ';
+    }
+    this.playerName = savedName.trim();
 
     const storedGold = localStorage.getItem('meow_gold');
     this.gold = (storedGold !== null && !isNaN(parseInt(storedGold))) ? parseInt(storedGold) : 150;
@@ -149,12 +147,12 @@ class UIController {
     const btnOpenAuth = document.getElementById('btnOpenAuthModal');
     const btnLogout = document.getElementById('btnLogout');
 
-    if (this.currentUser) {
-      if (nameText) nameText.textContent = `🐾 ${this.currentUser.username}`;
+    if (this.currentUser && this.currentUser.username) {
+      if (nameText) nameText.textContent = this.currentUser.username;
       if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
       if (btnLogout) btnLogout.classList.remove('hidden');
     } else {
-      if (nameText) nameText.textContent = 'Khách (Chưa đăng nhập)';
+      if (nameText) nameText.textContent = 'Khách';
       if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
       if (btnLogout) btnLogout.classList.add('hidden');
     }
@@ -170,6 +168,12 @@ class UIController {
     this.menuGold = document.getElementById('menuGold');
     this.menuDice = document.getElementById('menuDice');
     this.playerNameInput = document.getElementById('playerNameInput');
+
+    // Force load the exact last typed name
+    const storedLast = localStorage.getItem('meow_player_name');
+    if (storedLast && storedLast !== 'undefined' && storedLast !== 'null' && storedLast.trim()) {
+      this.playerName = storedLast.trim();
+    }
     this.playerNameInput.value = this.playerName;
 
     // HUD elements
@@ -186,21 +190,18 @@ class UIController {
     this.killFeed = document.getElementById('killFeed');
     this.buffBanner = document.getElementById('buffBanner');
 
-    // Event listeners for Player Name Input
-    this.playerNameInput.addEventListener('input', (e) => {
-      const val = e.target.value.trim();
+    // Immediate sync on every keystroke, change or blur
+    const syncName = (e) => {
+      const val = (e.target.value || '').trim();
       if (val && val !== 'undefined' && val !== 'null') {
         this.playerName = val;
-        localStorage.setItem('meow_player_name', this.playerName);
+        localStorage.setItem('meow_player_name', val);
       }
-    });
-
-    this.playerNameInput.addEventListener('change', (e) => {
-      const val = e.target.value.trim();
-      this.playerName = (val && val !== 'undefined' && val !== 'null') ? val : 'Mèo Hiệp Sĩ';
-      this.playerNameInput.value = this.playerName;
-      this.saveData();
-    });
+    };
+    this.playerNameInput.addEventListener('input', syncName);
+    this.playerNameInput.addEventListener('change', syncName);
+    this.playerNameInput.addEventListener('blur', syncName);
+    this.playerNameInput.addEventListener('keyup', syncName);
 
     // Dice Gacha Roll Modal
     document.getElementById('btnRollDice').addEventListener('click', () => {

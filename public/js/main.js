@@ -101,7 +101,10 @@ window.addEventListener('DOMContentLoaded', () => {
   // 3. Start Game
   function startGame() {
     sound.init();
-    const name = ui.playerNameInput.value.trim() || 'Mèo Hiệp Sĩ';
+    const inputVal = ui.playerNameInput ? ui.playerNameInput.value.trim() : '';
+    const name = (inputVal && inputVal !== 'undefined' && inputVal !== 'null') ? inputVal : (ui.playerName || 'Mèo Hiệp Sĩ');
+    ui.playerName = name;
+    localStorage.setItem('meow_player_name', name);
     const skin = ui.selectedSkin;
 
     if (gameMode === 'online') {
@@ -477,5 +480,19 @@ window.addEventListener('DOMContentLoaded', () => {
     offlineEngine.stop();
     ui.gameOverScreen.classList.add('hidden');
     ui.startScreen.classList.remove('hidden');
+  });
+
+  // Ensure last saved name is restored into input box
+  const lastSaved = localStorage.getItem('meow_player_name');
+  if (lastSaved && lastSaved !== 'undefined' && lastSaved !== 'null' && lastSaved.trim()) {
+    ui.playerName = lastSaved.trim();
+    if (ui.playerNameInput) ui.playerNameInput.value = lastSaved.trim();
+  }
+
+  // Backup save on page exit or reload
+  window.addEventListener('beforeunload', () => {
+    if (ui.playerNameInput && ui.playerNameInput.value.trim()) {
+      localStorage.setItem('meow_player_name', ui.playerNameInput.value.trim());
+    }
   });
 });

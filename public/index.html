@@ -28,7 +28,7 @@
       
       <!-- HP Bar -->
       <div class="bar-container hp-container">
-        <span class="bar-label">❤️ HP</span>
+        <span class="bar-label">HP</span>
         <div class="bar-track">
           <div id="hpFill" class="bar-fill hp-fill" style="width: 100%;"></div>
         </div>
@@ -37,7 +37,7 @@
 
       <!-- Energy Bar -->
       <div class="bar-container energy-container">
-        <span class="bar-label">⚡ NĂNG LƯỢNG</span>
+        <span class="bar-label">NĂNG LƯỢNG</span>
         <div class="bar-track">
           <div id="energyFill" class="bar-fill energy-fill" style="width: 100%;"></div>
         </div>
@@ -46,20 +46,20 @@
 
       <!-- Match Loot -->
       <div class="match-loot">
-        <span class="loot-item">🪙 <span id="hudGold">0</span></span>
-        <span class="loot-item">🎲 <span id="hudDice">0</span></span>
+        <span class="loot-item">Vàng: <span id="hudGold">0</span></span>
+        <span class="loot-item">Xúc xắc: <span id="hudDice">0</span></span>
         <span class="loot-item mode-tag" id="hudModeTag">ONLINE</span>
       </div>
 
       <!-- Surrender / Exit Button -->
       <button id="btnSurrender" class="btn-hud-surrender" type="button" title="Đầu hàng và thoát khỏi trận đấu">
-        🏳️ ĐẦU HÀNG / THOÁT
+        Đầu hàng / Thoát
       </button>
     </div>
 
     <!-- Leaderboard Top 10 (Top-Right) -->
     <div class="hud-panel leaderboard">
-      <div class="leaderboard-title">🏆 TOP 10 MÈO</div>
+      <div class="leaderboard-title">BẢNG XẾP HẠNG</div>
       <ol id="leaderboardList" class="leaderboard-list">
         <!-- Injected via JavaScript -->
       </ol>
@@ -89,45 +89,43 @@
   <div id="startScreen" class="modal-overlay">
     <div class="modal-card main-menu-card">
       <div class="game-logo">
-        <span class="logo-cat">🐱</span>
         <h1>Meow.io</h1>
-        <p class="tagline">Thu Thập Ánh Sáng ✨ • Đớp Pate 🥫 • Cào Móng Vuốt 🐾</p>
+        <p class="tagline">Đấu trường mèo sinh tồn</p>
       </div>
 
       <!-- Game Mode Switcher: Online vs Offline -->
       <div class="mode-tabs">
-        <button id="modeOnlineBtn" class="mode-tab active" type="button">🌐 ONLINE (Đấu Mạng)</button>
-        <button id="modeOfflineBtn" class="mode-tab" type="button">🤖 OFFLINE (Chơi Máy)</button>
+        <button id="modeOnlineBtn" class="mode-tab active" type="button">Trực tuyến</button>
+        <button id="modeOfflineBtn" class="mode-tab" type="button">Chơi máy</button>
       </div>
 
-      <!-- User Account Bar (Login / Register / Profile) -->
+      <!-- User Account Bar -->
       <div class="user-account-bar" id="userAccountBar">
         <div class="account-info">
-          <span class="account-avatar">👤</span>
-          <span class="account-name" id="accountUsernameText">Khách (Chưa đăng nhập)</span>
+          <span class="account-name" id="accountUsernameText">Khách</span>
         </div>
         <div class="account-actions">
-          <button id="btnOpenAuthModal" class="btn-account-auth" type="button">🔐 Đăng Nhập / Đăng Ký</button>
-          <button id="btnLogout" class="btn-account-logout hidden" type="button">🚪 Đăng Xuất</button>
+          <button id="btnOpenAuthModal" class="btn-account-auth" type="button">Đăng nhập / Đăng ký</button>
+          <button id="btnLogout" class="btn-account-logout hidden" type="button">Đăng xuất</button>
         </div>
       </div>
 
       <!-- Player Wallet Bar -->
       <div class="wallet-bar">
-        <div class="wallet-badge">🪙 Vàng: <span id="menuGold">0</span></div>
-        <div class="wallet-badge">🎲 Xúc Xắc: <span id="menuDice">0</span></div>
-        <button id="btnRollDice" class="btn-dice-roll">🎲 LẮC DICE (+Skin)</button>
+        <div class="wallet-badge">Vàng: <span id="menuGold">0</span></div>
+        <div class="wallet-badge">Xúc xắc: <span id="menuDice">0</span></div>
+        <button id="btnRollDice" class="btn-dice-roll">Lắc xúc xắc</button>
       </div>
 
       <!-- Nickname Input -->
       <div class="input-group">
-        <label for="playerNameInput">Đặt Tên Mèo:</label>
-        <input type="text" id="playerNameInput" maxlength="15" placeholder="Nhập tên mèo..." value="Mèo Hiệp Sĩ">
+        <label for="playerNameInput">Tên người chơi:</label>
+        <input type="text" id="playerNameInput" maxlength="15" placeholder="Nhập tên người chơi...">
       </div>
 
       <!-- Skin Selection Slider -->
       <div class="skin-selector-section">
-        <label>Chọn Skin Mèo:</label>
+        <label>Chọn trang phục:</label>
         <div class="skin-carousel" id="skinCarousel">
           <!-- Dynamically populated skins -->
         </div>
@@ -135,25 +133,23 @@
 
       <!-- Action Buttons -->
       <div class="menu-actions">
-        <button id="btnPlay" class="btn-primary">▶ VÀO TRẬN NGAY</button>
+        <button id="btnPlay" class="btn-primary">VÀO TRẬN</button>
       </div>
 
-      <!-- Download App Button (Visible on Web, Auto-Hidden inside App) -->
+      <!-- Download App Button -->
       <div id="downloadAppWrapper" class="download-app-wrapper">
         <button id="btnOpenDownloadModal" class="btn-download-app" type="button">
-          📱 TẢI APP ANDROID (.APK)
+          Tải ứng dụng Android (.apk)
         </button>
       </div>
 
       <!-- Controls Guidance -->
       <div class="controls-guide">
         <div class="guide-col">
-          <span class="guide-icon">🖱️</span>
-          <span><b>PC:</b> Chuột hướng đi • <b>Space / Double Click</b> để Tăng tốc ⚡</span>
+          <span><b>PC:</b> Chuột hướng đi • <b>Space</b> để tăng tốc</span>
         </div>
         <div class="guide-col">
-          <span class="guide-icon">📱</span>
-          <span><b>Mobile:</b> Cần ảo • <b>Double Tap / Nút Boost</b> để Tăng tốc ⚡</span>
+          <span><b>Mobile:</b> Cần gạt di chuyển • <b>Nút Boost</b> để tăng tốc</span>
         </div>
       </div>
     </div>
@@ -162,28 +158,27 @@
   <!-- Game Over Screen -->
   <div id="gameOverScreen" class="modal-overlay hidden">
     <div class="modal-card game-over-card">
-      <div class="game-over-icon">💥</div>
-      <h2>MÈO ĐÃ BỊ HẠ!</h2>
+      <h2>KẾT THÚC TRẬN ĐẤU</h2>
       <p class="game-over-subtitle">Bạn đã chiến đấu rất dũng cảm!</p>
 
       <div class="result-stats">
         <div class="stat-row">
           <span>Kích thước tối đa:</span>
-          <strong id="finalScore" class="highlight-score">🐱 100</strong>
+          <strong id="finalScore" class="highlight-score">100</strong>
         </div>
         <div class="stat-row">
           <span>Vàng thu thập:</span>
-          <strong id="finalGold">🪙 +0</strong>
+          <strong id="finalGold">+0</strong>
         </div>
         <div class="stat-row">
-          <span>Xúc xắc ma thuật:</span>
-          <strong id="finalDice">🎲 +0</strong>
+          <span>Xúc xắc nhận được:</span>
+          <strong id="finalDice">+0</strong>
         </div>
       </div>
 
       <div class="game-over-actions">
-        <button id="btnPlayAgain" class="btn-primary">🔄 CHƠI LẠI</button>
-        <button id="btnBackToMenu" class="btn-secondary">🏠 VỀ SẢNH CHỜ</button>
+        <button id="btnPlayAgain" class="btn-primary">Chơi lại</button>
+        <button id="btnBackToMenu" class="btn-secondary">Về sảnh</button>
       </div>
     </div>
   </div>
@@ -191,21 +186,21 @@
   <!-- Dice Roll (Gacha) Modal -->
   <div id="diceRollModal" class="modal-overlay hidden">
     <div class="modal-card dice-roll-card">
-      <h2>🎲 VÒNG QUAY XÚC XẮC</h2>
-      <p>Dùng 1 Xúc Xắc để mở khóa Skin mới hoặc nhận Vàng thưởng!</p>
+      <h2>VÒNG QUAY XÚC XẮC</h2>
+      <p>Dùng 1 Xúc xắc để mở khóa Trang phục mới hoặc nhận Vàng thưởng!</p>
       
       <div class="dice-box">
         <div id="animatedDice" class="dice-cube">🎲</div>
       </div>
 
       <div id="rollResult" class="roll-result hidden">
-        <div id="rollResultIcon" class="result-icon">✨</div>
+        <div id="rollResultIcon" class="result-icon"></div>
         <div id="rollResultText" class="result-text">Bạn nhận được...</div>
       </div>
 
       <div class="dice-actions">
-        <button id="btnDoRoll" class="btn-primary">🎲 QUAY NGAY (-1 Dice)</button>
-        <button id="btnCloseDiceModal" class="btn-secondary">ĐÓNG</button>
+        <button id="btnDoRoll" class="btn-primary">Quay ngay (-1 xúc xắc)</button>
+        <button id="btnCloseDiceModal" class="btn-secondary">Đóng</button>
       </div>
     </div>
   </div>
@@ -213,11 +208,10 @@
   <!-- Download App Modal -->
   <div id="downloadModal" class="modal-overlay hidden">
     <div class="modal-card download-modal-card">
-      <h2>📱 TẢI APP MEOW.IO</h2>
-      <p>Trải nghiệm mượt mà 120 FPS trên điện thoại Android!</p>
+      <h2>TẢI APP MEOW.IO</h2>
+      <p>Trải nghiệm mượt mà trên điện thoại Android</p>
       
       <div class="app-info-box">
-        <div class="app-icon">🐱</div>
         <div class="app-details">
           <h3>Meow.io Mobile</h3>
           <p>Phiên bản 1.0.0 • Android 6.0+</p>
@@ -225,15 +219,15 @@
       </div>
 
       <div class="download-instructions">
-        <p>✅ Đã bao gồm project nguồn Android Studio trong thư mục <code>android/</code> của dự án.</p>
-        <p>✅ Có thể build trực tiếp thành file <code>.apk</code> chỉ với 1 click trong Android Studio.</p>
+        <p>• Mã nguồn Android Studio có sẵn trong thư mục <code>android/</code> của dự án.</p>
+        <p>• Có thể build trực tiếp thành file <code>.apk</code> chỉ với 1 click trong Android Studio.</p>
       </div>
 
       <div class="dice-actions">
         <a id="btnDirectDownloadApk" href="/meow-io.apk" download="Meow.io.apk" class="btn-primary" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">
-          📥 TẢI XUỐNG .APK
+          Tải file .apk
         </a>
-        <button id="btnCloseDownloadModal" class="btn-secondary" type="button">ĐÓNG</button>
+        <button id="btnCloseDownloadModal" class="btn-secondary" type="button">Đóng</button>
       </div>
     </div>
   </div>
@@ -241,17 +235,16 @@
   <!-- Surrender Confirmation Modal -->
   <div id="surrenderModal" class="modal-overlay hidden">
     <div class="modal-card surrender-card">
-      <div class="surrender-icon">🏳️</div>
       <h2>ĐẦU HÀNG & THOÁT TRẬN?</h2>
       <p>Bạn có chắc chắn muốn rời khỏi trận đấu?</p>
       
       <div class="surrender-reward-notice">
-        ✨ <b>Yên tâm:</b> Toàn bộ số <b>Vàng 🪙</b> và <b>Xúc Xắc 🎲</b> bạn đã nhặt được trong trận này vẫn sẽ được <b>lưu lại đầy đủ</b> vào tài khoản!
+        Toàn bộ số Vàng và Xúc xắc bạn đã thu thập trong trận này vẫn sẽ được lưu lại đầy đủ!
       </div>
 
       <div class="game-over-actions">
-        <button id="btnConfirmSurrender" class="btn-primary btn-danger" type="button">🏳️ XÁC NHẬN ĐẦU HÀNG</button>
-        <button id="btnCancelSurrender" class="btn-secondary" type="button">⚔️ TIẾP TỤC CHIẾN ĐẤU</button>
+        <button id="btnConfirmSurrender" class="btn-primary btn-danger" type="button">Xác nhận đầu hàng</button>
+        <button id="btnCancelSurrender" class="btn-secondary" type="button">Tiếp tục chơi</button>
       </div>
     </div>
   </div>
@@ -260,15 +253,15 @@
   <div id="authModal" class="modal-overlay hidden">
     <div class="modal-card auth-card">
       <div class="auth-tabs">
-        <button id="tabLogin" class="auth-tab active" type="button">🔑 ĐĂNG NHẬP</button>
-        <button id="tabRegister" class="auth-tab" type="button">✨ ĐĂNG KÝ</button>
+        <button id="tabLogin" class="auth-tab active" type="button">Đăng nhập</button>
+        <button id="tabRegister" class="auth-tab" type="button">Đăng ký</button>
       </div>
       
       <!-- Login Form -->
       <form id="formLogin" class="auth-form">
         <div class="input-group">
-          <label for="loginIdentifier">Tên người dùng hoặc Email:</label>
-          <input type="text" id="loginIdentifier" placeholder="Tên tài khoản hoặc email..." required autocomplete="username">
+          <label for="loginIdentifier">Tên tài khoản hoặc Email:</label>
+          <input type="text" id="loginIdentifier" placeholder="Tên hoặc email..." required autocomplete="username">
         </div>
         <div class="input-group">
           <label for="loginPassword">Mật khẩu:</label>
@@ -276,8 +269,8 @@
         </div>
         <div id="loginMsg" class="auth-message hidden"></div>
         <div class="auth-actions">
-          <button type="submit" class="btn-primary" id="btnSubmitLogin">🔑 ĐĂNG NHẬP</button>
-          <button type="button" class="btn-secondary" id="btnCloseAuthModal">ĐÓNG</button>
+          <button type="submit" class="btn-primary" id="btnSubmitLogin">Đăng nhập</button>
+          <button type="button" class="btn-secondary" id="btnCloseAuthModal">Đóng</button>
         </div>
       </form>
 
@@ -285,20 +278,20 @@
       <form id="formRegister" class="auth-form hidden">
         <div class="input-group">
           <label for="regUsername">Tên người dùng:</label>
-          <input type="text" id="regUsername" maxlength="20" placeholder="Tên hiển thị trong game..." required autocomplete="username">
+          <input type="text" id="regUsername" maxlength="20" placeholder="Tên hiển thị..." required autocomplete="username">
         </div>
         <div class="input-group">
           <label for="regEmail">Email:</label>
-          <input type="email" id="regEmail" placeholder="ví_dụ@gmail.com..." required autocomplete="email">
+          <input type="email" id="regEmail" placeholder="email@gmail.com..." required autocomplete="email">
         </div>
         <div class="input-group">
           <label for="regPassword">Mật khẩu:</label>
-          <input type="password" id="regPassword" minlength="4" placeholder="Ít nhất 4 ký tự..." required autocomplete="new-password">
+          <input type="password" id="regPassword" minlength="4" placeholder="Từ 4 ký tự..." required autocomplete="new-password">
         </div>
         <div id="regMsg" class="auth-message hidden"></div>
         <div class="auth-actions">
-          <button type="submit" class="btn-primary" id="btnSubmitRegister">✨ TẠO TÀI KHOẢN</button>
-          <button type="button" class="btn-secondary" id="btnCloseAuthModal2">ĐÓNG</button>
+          <button type="submit" class="btn-primary" id="btnSubmitRegister">Đăng ký</button>
+          <button type="button" class="btn-secondary" id="btnCloseAuthModal2">Đóng</button>
         </div>
       </form>
     </div>
