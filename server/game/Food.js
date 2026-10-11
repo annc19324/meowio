@@ -7,57 +7,57 @@ class Food {
     
     switch (type) {
       case 'light_small':
-        this.value = 5;
-        this.radius = 6;
-        break;
-      case 'light_big':
-        this.value = 20;
-        this.radius = 11;
-        break;
-      case 'pate':
-        this.value = 50;
-        this.heal = 25;
-        this.radius = 16;
-        break;
-      case 'coin':
-        this.gold = 15;
+        this.value = 15;
         this.radius = 10;
         break;
-      case 'dice':
+      case 'light_big':
+        this.value = 45;
+        this.radius = 16;
+        break;
+      case 'pate':
+        this.value = 120;
+        this.heal = 35;
+        this.radius = 24;
+        break;
+      case 'coin':
+        this.gold = 25;
         this.radius = 14;
         break;
+      case 'dice':
+        this.radius = 18;
+        break;
       case 'speed_orb':
-        this.value = 10;
-        this.radius = 12;
+        this.value = 30;
+        this.radius = 17;
         this.speedBoost = true;
         break;
       case 'magnet_orb': // 🧲 Hạt Nam Châm Hút Hạt
-        this.value = 15;
-        this.radius = 13;
+        this.value = 35;
+        this.radius = 18;
         break;
       case 'shield_orb': // 🛡️ Hạt Khiên Bảo Vệ
-        this.value = 15;
-        this.radius = 13;
+        this.value = 35;
+        this.radius = 18;
         break;
       case 'catnip_orb': // 🌿 Cỏ Mèo Thần Kỳ (Cuồng nộ)
-        this.value = 25;
-        this.heal = 20;
-        this.radius = 14;
+        this.value = 50;
+        this.heal = 25;
+        this.radius = 19;
         break;
       case 'fish_orb': // 🐟 Cá Vàng Béo Ngậy
-        this.value = 80;
-        this.heal = 35;
-        this.gold = 10;
-        this.radius = 17;
+        this.value = 150;
+        this.heal = 50;
+        this.gold = 20;
+        this.radius = 26;
         break;
       case 'star_orb': // ⭐ Siêu Sao Bất Tử
-        this.value = 35;
-        this.gold = 15;
-        this.radius = 16;
+        this.value = 80;
+        this.gold = 30;
+        this.radius = 24;
         break;
       default:
-        this.value = 5;
-        this.radius = 6;
+        this.value = 15;
+        this.radius = 10;
     }
   }
 }

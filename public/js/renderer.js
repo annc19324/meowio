@@ -241,19 +241,21 @@ class GameRenderer {
           ctx.fill();
 
           // Can body
+          const canW = radius * 1.5;
+          const canH = radius * 1.05;
           ctx.fillStyle = '#ee5253';
           ctx.beginPath();
-          ctx.roundRect(fx - 13, fy - 9, 26, 18, 4);
+          ctx.roundRect(fx - canW / 2, fy - canH / 2, canW, canH, 4);
           ctx.fill();
 
           // Gold lid
           ctx.fillStyle = '#feca57';
           ctx.beginPath();
-          ctx.ellipse(fx, fy - 9, 13, 4, 0, 0, Math.PI * 2);
+          ctx.ellipse(fx, fy - canH / 2, canW / 2, 4, 0, 0, Math.PI * 2);
           ctx.fill();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 8px Nunito';
+          ctx.font = `bold ${Math.round(radius * 0.48)}px Nunito`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('PATE', fx, fy + 1);
@@ -267,11 +269,11 @@ class GameRenderer {
           ctx.fill();
 
           ctx.strokeStyle = '#ffeaa7';
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = 1.8;
           ctx.stroke();
 
           ctx.fillStyle = '#ffeaa7';
-          ctx.font = 'bold 10px Fredoka';
+          ctx.font = `bold ${Math.round(radius * 1.1)}px Fredoka`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('🪙', fx, fy);
@@ -279,16 +281,19 @@ class GameRenderer {
         }
 
         case 5: { // dice 🎲
+          const dw = radius * 1.4;
           ctx.fillStyle = '#ffffff';
           ctx.beginPath();
-          ctx.roundRect(fx - 11, fy - 11, 22, 22, 4);
+          ctx.roundRect(fx - dw / 2, fy - dw / 2, dw, dw, 5);
           ctx.fill();
 
           ctx.fillStyle = '#a55eea';
+          const dotR = radius * 0.16;
+          const dotOff = radius * 0.32;
           ctx.beginPath();
-          ctx.arc(fx - 4, fy - 4, 2.2, 0, Math.PI * 2);
-          ctx.arc(fx, fy, 2.2, 0, Math.PI * 2);
-          ctx.arc(fx + 4, fy + 4, 2.2, 0, Math.PI * 2);
+          ctx.arc(fx - dotOff, fy - dotOff, dotR, 0, Math.PI * 2);
+          ctx.arc(fx, fy, dotR, 0, Math.PI * 2);
+          ctx.arc(fx + dotOff, fy + dotOff, dotR, 0, Math.PI * 2);
           ctx.fill();
           break;
         }
@@ -305,7 +310,7 @@ class GameRenderer {
           ctx.fill();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 11px Fredoka';
+          ctx.font = `bold ${Math.round(radius * 1.05)}px Fredoka`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('⚡', fx, fy);
@@ -325,7 +330,7 @@ class GameRenderer {
           ctx.fill();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 12px Fredoka';
+          ctx.font = `bold ${Math.round(radius * 1.1)}px Fredoka`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('🧲', fx, fy);
@@ -349,7 +354,7 @@ class GameRenderer {
           ctx.stroke();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 12px Fredoka';
+          ctx.font = `bold ${Math.round(radius * 1.1)}px Fredoka`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('🛡️', fx, fy);
@@ -369,7 +374,7 @@ class GameRenderer {
           ctx.fill();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 13px Fredoka';
+          ctx.font = `bold ${Math.round(radius * 1.15)}px Fredoka`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('🌿', fx, fy);
@@ -393,7 +398,7 @@ class GameRenderer {
           ctx.stroke();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 15px Fredoka';
+          ctx.font = `bold ${Math.round(radius * 1.15)}px Fredoka`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('🐟', fx, fy + fishBob);
@@ -418,7 +423,7 @@ class GameRenderer {
           ctx.stroke();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 14px Fredoka';
+          ctx.font = `bold ${Math.round(radius * 1.15)}px Fredoka`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('⭐', fx, fy);

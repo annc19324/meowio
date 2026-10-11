@@ -230,7 +230,7 @@ window.addEventListener('DOMContentLoaded', () => {
       else if (ev.type === 'eat_pate') {
         if (ev.playerId === localPlayerId) {
           sound.playPate();
-          renderer.addFloatingText('+50 PATE! ❤️+25', ev.x, ev.y, '#2ed573', 18);
+          renderer.addFloatingText('+120 PATE! ❤️+35', ev.x, ev.y, '#2ed573', 19);
         }
       }
       else if (ev.type === 'coin_pickup') {
@@ -250,7 +250,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (ev.playerId === localPlayerId) {
           sound.playBoost();
           ui.showBuffBanner('speed');
-          if (me) renderer.addFloatingText('⚡ TỐC ĐỘ (+100% NĂNG LƯỢNG)!', me.x, me.y, '#f1c40f', 18);
+          if (me) renderer.addFloatingText('⚡ TỐC ĐỘ (+30 SIZE, 100% NL)!', me.x, me.y, '#f1c40f', 18);
         }
       }
       else if (ev.type === 'eat_magnet_orb') {
@@ -271,21 +271,21 @@ window.addEventListener('DOMContentLoaded', () => {
         if (ev.playerId === localPlayerId) {
           sound.playCatnip();
           ui.showBuffBanner('catnip');
-          if (me) renderer.addFloatingText('🌿 CỎ MÈO CUỒNG NỘ (+50% DMG, CÀO SIÊU TỐC)!', me.x, me.y, '#2ed573', 18);
+          if (me) renderer.addFloatingText('🌿 CỎ MÈO CUỒNG NỘ (+50 SIZE, +50% DMG)!', me.x, me.y, '#2ed573', 18);
         }
       }
       else if (ev.type === 'eat_fish_orb') {
         if (ev.playerId === localPlayerId) {
           sound.playFish();
           ui.showBuffBanner('fish');
-          if (me) renderer.addFloatingText('🐟 CÁ VÀNG BÉO (+80 SIZE & +35 HP)!', me.x, me.y, '#ff793f', 19);
+          if (me) renderer.addFloatingText('🐟 CÁ VÀNG BÉO (+150 SIZE & +50 HP)!', me.x, me.y, '#ff793f', 20);
         }
       }
       else if (ev.type === 'eat_star_orb') {
         if (ev.playerId === localPlayerId) {
           sound.playStar();
           ui.showBuffBanner('star');
-          if (me) renderer.addFloatingText('⭐ SIÊU SAO BẤT TỬ (5s)!', me.x, me.y, '#f1c40f', 20);
+          if (me) renderer.addFloatingText('⭐ SIÊU SAO BẤT TỬ (+80 SIZE)!', me.x, me.y, '#f1c40f', 20);
         }
       }
     }

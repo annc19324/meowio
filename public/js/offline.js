@@ -3,7 +3,7 @@ class OfflineEngine {
   constructor() {
     this.mapSize = 7000;
     this.targetBotCount = 28;
-    this.targetFoodCount = 700;
+    this.targetFoodCount = 1500;
 
     this.player = null;
     this.bots = [];
@@ -125,27 +125,27 @@ class OfflineEngine {
     let val = 5;
 
     if (roll < 0.46) {
-      typeCode = 1; radius = 6; val = 5; // Hạt sáng nhỏ
+      typeCode = 1; radius = 10; val = 15; // Hạt sáng nhỏ
     } else if (roll < 0.66) {
-      typeCode = 2; radius = 11; val = 20; // Hạt sáng lớn
+      typeCode = 2; radius = 16; val = 45; // Hạt sáng lớn
     } else if (roll < 0.74) {
-      typeCode = 6; radius = 12; val = 10; // ⚡ Hạt tốc độ
+      typeCode = 6; radius = 17; val = 30; // ⚡ Hạt tốc độ
     } else if (roll < 0.80) {
-      typeCode = 7; radius = 13; val = 15; // 🧲 Nam châm
+      typeCode = 7; radius = 18; val = 35; // 🧲 Nam châm
     } else if (roll < 0.85) {
-      typeCode = 8; radius = 13; val = 15; // 🛡️ Khiên bảo vệ
+      typeCode = 8; radius = 18; val = 35; // 🛡️ Khiên bảo vệ
     } else if (roll < 0.90) {
-      typeCode = 3; radius = 16; val = 50; // 🥫 Hộp pate
+      typeCode = 3; radius = 24; val = 120; // 🥫 Hộp pate
     } else if (roll < 0.94) {
-      typeCode = 9; radius = 14; val = 25; // 🌿 Cỏ mèo
+      typeCode = 9; radius = 19; val = 50; // 🌿 Cỏ mèo
     } else if (roll < 0.97) {
-      typeCode = 10; radius = 17; val = 80; // 🐟 Cá vàng
+      typeCode = 10; radius = 26; val = 150; // 🐟 Cá vàng
     } else if (roll < 0.985) {
-      typeCode = 4; radius = 10; val = 15; // 🪙 Đồng vàng
+      typeCode = 4; radius = 14; val = 25; // 🪙 Đồng vàng
     } else if (roll < 0.995) {
-      typeCode = 5; radius = 14; val = 0; // 🎲 Xúc xắc
+      typeCode = 5; radius = 18; val = 0; // 🎲 Xúc xắc
     } else {
-      typeCode = 11; radius = 16; val = 35; // ⭐ Siêu sao bất tử
+      typeCode = 11; radius = 24; val = 80; // ⭐ Siêu sao bất tử
     }
 
     const margin = 100;
@@ -347,57 +347,57 @@ class OfflineEngine {
       const dy = f[3] - this.player.y;
       if (dx * dx + dy * dy <= (playerRadius + f[4]) * (playerRadius + f[4])) {
         const type = f[1];
-        if (type === 1) { this.player.size += 5; this.player.gold += 1; }
-        else if (type === 2) { this.player.size += 20; this.player.gold += 3; }
+        if (type === 1) { this.player.size += 15; this.player.gold += 1; }
+        else if (type === 2) { this.player.size += 45; this.player.gold += 3; }
         else if (type === 3) {
-          this.player.size += 50;
-          this.player.hp = Math.min(100, this.player.hp + 25);
-          this.player.gold += 5;
+          this.player.size += 120;
+          this.player.hp = Math.min(100, this.player.hp + 35);
+          this.player.gold += 8;
           this.events.push({ type: 'eat_pate', playerId: this.player.id, x: f[2], y: f[3] });
         }
         else if (type === 4) {
-          this.player.gold += 15;
-          this.events.push({ type: 'coin_pickup', playerId: this.player.id, gold: 15 });
+          this.player.gold += 25;
+          this.events.push({ type: 'coin_pickup', playerId: this.player.id, gold: 25 });
         }
         else if (type === 5) {
           this.player.diceCount++;
           this.events.push({ type: 'dice_pickup', playerId: this.player.id, buffType: 'speed' });
         }
         else if (type === 6) {
-          this.player.size += 10;
+          this.player.size += 30;
           this.player.energy = 100;
           this.player.buff = { type: 'speed', duration: 5 };
           this.events.push({ type: 'eat_speed_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
         else if (type === 7) {
-          this.player.size += 15;
+          this.player.size += 35;
           this.player.buff = { type: 'magnet', duration: 7 };
-          this.player.gold += 2;
+          this.player.gold += 3;
           this.events.push({ type: 'eat_magnet_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
         else if (type === 8) {
-          this.player.size += 15;
+          this.player.size += 35;
           this.player.shieldHits = Math.min(4, (this.player.shieldHits || 0) + 2);
-          this.player.gold += 2;
+          this.player.gold += 3;
           this.events.push({ type: 'eat_shield_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
         else if (type === 9) {
-          this.player.size += 25;
-          this.player.hp = Math.min(100, this.player.hp + 20);
+          this.player.size += 50;
+          this.player.hp = Math.min(100, this.player.hp + 25);
           this.player.buff = { type: 'catnip', duration: 6 };
-          this.player.gold += 3;
+          this.player.gold += 5;
           this.events.push({ type: 'eat_catnip_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
         else if (type === 10) {
-          this.player.size += 80;
-          this.player.hp = Math.min(100, this.player.hp + 35);
-          this.player.gold += 10;
+          this.player.size += 150;
+          this.player.hp = Math.min(100, this.player.hp + 50);
+          this.player.gold += 20;
           this.events.push({ type: 'eat_fish_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
         else if (type === 11) {
-          this.player.size += 35;
+          this.player.size += 80;
           this.player.buff = { type: 'star', duration: 5 };
-          this.player.gold += 15;
+          this.player.gold += 30;
           this.events.push({ type: 'eat_star_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
 

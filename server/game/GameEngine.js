@@ -27,7 +27,7 @@ class GameEngine {
     this.foodIdCounter = 1;
 
     // Online Mode: Only Real Players! Zero Bots.
-    this.targetFoodCount = 1500;
+    this.targetFoodCount = 3000;
 
     // Spatial partitioning grid (600x600 px cells)
     this.cellSize = 600;
@@ -459,7 +459,7 @@ class GameEngine {
   }
 
   dropDeathLoot(cat) {
-    const orbCount = Math.min(18, Math.max(5, Math.floor(cat.size / 30)));
+    const orbCount = Math.min(26, Math.max(8, Math.floor(cat.size / 24)));
     const spread = cat.getRadius() * 1.5;
 
     for (let i = 0; i < orbCount; i++) {
