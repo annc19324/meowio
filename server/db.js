@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Pool } = require('pg');
+const crypto = require('crypto');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -8,16 +9,23 @@ const pool = new Pool({
   }
 });
 
+function hashPassword(password) {
+  const salt = 'meow_io_secret_salt_2026';
+  return crypto.createHash('sha256').update(password + salt).digest('hex');
+}
+
 async function initDB() {
   try {
     const client = await pool.connect();
     console.log('✅ Connected to Neon PostgreSQL successfully!');
 
-    // Create users table
+    // Create or migrate users table
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(100) UNIQUE,
+        password_hash VARCHAR(255),
         gold INT DEFAULT 150,
         dice INT DEFAULT 3,
         unlocked_skins JSONB DEFAULT '["white", "orange"]'::jsonb,
@@ -28,8 +36,11 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
     `);
-    console.log('✅ Table "users" verified/created!');
+    console.log('✅ Table "users" verified/migrated with Email & Password!');
 
     client.release();
     return true;
@@ -39,21 +50,94 @@ async function initDB() {
   }
 }
 
-// User helper methods
-async function getOrCreateUser(username) {
-  const cleanName = String(username).trim().substring(0, 30) || 'Mèo Ẩn Danh';
+// Register a new user with username, email, password
+async function registerUser(username, email, password) {
+  const cleanName = String(username).trim().substring(0, 30);
+  const cleanEmail = String(email).trim().toLowerCase();
+  
+  if (!cleanName || cleanName === 'undefined') {
+    return { success: false, message: 'Tên người dùng không hợp lệ!' };
+  }
+  if (!cleanEmail || !cleanEmail.includes('@')) {
+    return { success: false, message: 'Email không hợp lệ!' };
+  }
+  if (!password || password.length < 4) {
+    return { success: false, message: 'Mật khẩu phải có ít nhất 4 ký tự!' };
+  }
+
   try {
-    let res = await pool.query('SELECT * FROM users WHERE username = $1', [cleanName]);
+    // Check if username exists
+    const checkName = await pool.query('SELECT id FROM users WHERE LOWER(username) = LOWER($1)', [cleanName]);
+    if (checkName.rows.length > 0) {
+      return { success: false, message: 'Tên người dùng này đã được sử dụng!' };
+    }
+
+    // Check if email exists
+    const checkEmail = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [cleanEmail]);
+    if (checkEmail.rows.length > 0) {
+      return { success: false, message: 'Email này đã được đăng ký tài khoản!' };
+    }
+
+    const hashed = hashPassword(password);
+    const res = await pool.query(`
+      INSERT INTO users (username, email, password_hash, gold, dice, unlocked_skins, selected_skin, high_score)
+      VALUES ($1, $2, $3, 150, 3, '["white", "orange"]'::jsonb, 'white', 100)
+      RETURNING id, username, email, gold, dice, unlocked_skins, selected_skin, high_score, total_kills;
+    `, [cleanName, cleanEmail, hashed]);
+
+    return { success: true, user: res.rows[0] };
+  } catch (err) {
+    console.error('registerUser error:', err.message);
+    return { success: false, message: 'Lỗi server khi đăng ký: ' + err.message };
+  }
+}
+
+// Login with username or email + password
+async function loginUser(identifier, password) {
+  const cleanId = String(identifier).trim();
+  if (!cleanId || !password) {
+    return { success: false, message: 'Vui lòng nhập đầy đủ tài khoản và mật khẩu!' };
+  }
+
+  try {
+    const hashed = hashPassword(password);
+    const res = await pool.query(`
+      SELECT id, username, email, gold, dice, unlocked_skins, selected_skin, high_score, total_kills
+      FROM users
+      WHERE (LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($1))
+        AND password_hash = $2
+    `, [cleanId, hashed]);
+
     if (res.rows.length === 0) {
-      // Create new user
+      return { success: false, message: 'Tên người dùng/Email hoặc mật khẩu không chính xác!' };
+    }
+
+    const user = res.rows[0];
+    await pool.query('UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
+    return { success: true, user };
+  } catch (err) {
+    console.error('loginUser error:', err.message);
+    return { success: false, message: 'Lỗi server khi đăng nhập: ' + err.message };
+  }
+}
+
+// Guest user profile fallback
+async function getOrCreateUser(username) {
+  let cleanName = String(username).trim().substring(0, 30);
+  if (!cleanName || cleanName === 'undefined' || cleanName === 'null') {
+    cleanName = 'Mèo Hiệp Sĩ';
+  }
+
+  try {
+    let res = await pool.query('SELECT id, username, email, gold, dice, unlocked_skins, selected_skin, high_score, total_kills FROM users WHERE LOWER(username) = LOWER($1)', [cleanName]);
+    if (res.rows.length === 0) {
       res = await pool.query(`
         INSERT INTO users (username, gold, dice, unlocked_skins, selected_skin, high_score)
         VALUES ($1, 150, 3, '["white", "orange"]'::jsonb, 'white', 100)
-        RETURNING *
+        RETURNING id, username, email, gold, dice, unlocked_skins, selected_skin, high_score, total_kills;
       `, [cleanName]);
     } else {
-      // Update last seen
-      await pool.query('UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE username = $1', [cleanName]);
+      await pool.query('UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1', [res.rows[0].id]);
     }
     return res.rows[0];
   } catch (err) {
@@ -64,6 +148,8 @@ async function getOrCreateUser(username) {
 
 async function saveUserMatch(username, { goldEarned = 0, diceEarned = 0, score = 100, kills = 0, unlockedSkins = null, selectedSkin = null }) {
   const cleanName = String(username).trim().substring(0, 30);
+  if (!cleanName || cleanName === 'undefined') return null;
+
   try {
     const query = `
       UPDATE users
@@ -76,8 +162,8 @@ async function saveUserMatch(username, { goldEarned = 0, diceEarned = 0, score =
         unlocked_skins = COALESCE($5::jsonb, unlocked_skins),
         selected_skin = COALESCE($6, selected_skin),
         last_seen = CURRENT_TIMESTAMP
-      WHERE username = $7
-      RETURNING *;
+      WHERE LOWER(username) = LOWER($7)
+      RETURNING id, username, email, gold, dice, unlocked_skins, selected_skin, high_score, total_kills;
     `;
     const res = await pool.query(query, [
       goldEarned,
@@ -97,6 +183,8 @@ async function saveUserMatch(username, { goldEarned = 0, diceEarned = 0, score =
 
 async function updateUserInventory(username, { gold, dice, unlockedSkins, selectedSkin }) {
   const cleanName = String(username).trim().substring(0, 30);
+  if (!cleanName || cleanName === 'undefined') return null;
+
   try {
     const query = `
       UPDATE users
@@ -106,8 +194,8 @@ async function updateUserInventory(username, { gold, dice, unlockedSkins, select
         unlocked_skins = COALESCE($3::jsonb, unlocked_skins),
         selected_skin = COALESCE($4, selected_skin),
         last_seen = CURRENT_TIMESTAMP
-      WHERE username = $5
-      RETURNING *;
+      WHERE LOWER(username) = LOWER($5)
+      RETURNING id, username, email, gold, dice, unlocked_skins, selected_skin, high_score, total_kills;
     `;
     const res = await pool.query(query, [
       gold !== undefined ? gold : null,
@@ -128,6 +216,7 @@ async function getGlobalLeaderboard() {
     const res = await pool.query(`
       SELECT username, high_score, total_kills, gold, selected_skin
       FROM users
+      WHERE username IS NOT NULL AND username != 'undefined'
       ORDER BY high_score DESC
       LIMIT 10;
     `);
@@ -141,6 +230,8 @@ async function getGlobalLeaderboard() {
 module.exports = {
   pool,
   initDB,
+  registerUser,
+  loginUser,
   getOrCreateUser,
   saveUserMatch,
   updateUserInventory,

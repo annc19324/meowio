@@ -235,6 +235,12 @@ window.addEventListener('DOMContentLoaded', () => {
           if (me) renderer.addFloatingText('🎲 POWER UP!', me.x, me.y, '#a55eea', 18);
         }
       }
+      else if (ev.type === 'eat_speed_orb') {
+        if (ev.playerId === localPlayerId) {
+          sound.playBoost();
+          if (me) renderer.addFloatingText('⚡ TỐC ĐỘ (+100% NĂNG LƯỢNG)!', me.x, me.y, '#f1c40f', 18);
+        }
+      }
     }
   }
 

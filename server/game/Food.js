@@ -1,7 +1,7 @@
 class Food {
   constructor(id, type, x, y) {
     this.id = id;
-    this.type = type; // 'light_small', 'light_big', 'pate', 'coin', 'dice'
+    this.type = type; // 'light_small', 'light_big', 'pate', 'coin', 'dice', 'speed_orb'
     this.x = x;
     this.y = y;
     
@@ -25,6 +25,11 @@ class Food {
         break;
       case 'dice':
         this.radius = 14;
+        break;
+      case 'speed_orb':
+        this.value = 10;
+        this.radius = 12;
+        this.speedBoost = true;
         break;
       default:
         this.value = 5;

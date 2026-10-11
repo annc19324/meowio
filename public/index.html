@@ -37,7 +37,7 @@
 
       <!-- Energy Bar -->
       <div class="bar-container energy-container">
-        <span class="bar-label">⚡ STAMINA</span>
+        <span class="bar-label">⚡ NĂNG LƯỢNG</span>
         <div class="bar-track">
           <div id="energyFill" class="bar-fill energy-fill" style="width: 100%;"></div>
         </div>
@@ -98,6 +98,18 @@
       <div class="mode-tabs">
         <button id="modeOnlineBtn" class="mode-tab active" type="button">🌐 ONLINE (Đấu Mạng)</button>
         <button id="modeOfflineBtn" class="mode-tab" type="button">🤖 OFFLINE (Chơi Máy)</button>
+      </div>
+
+      <!-- User Account Bar (Login / Register / Profile) -->
+      <div class="user-account-bar" id="userAccountBar">
+        <div class="account-info">
+          <span class="account-avatar">👤</span>
+          <span class="account-name" id="accountUsernameText">Khách (Chưa đăng nhập)</span>
+        </div>
+        <div class="account-actions">
+          <button id="btnOpenAuthModal" class="btn-account-auth" type="button">🔐 Đăng Nhập / Đăng Ký</button>
+          <button id="btnLogout" class="btn-account-logout hidden" type="button">🚪 Đăng Xuất</button>
+        </div>
       </div>
 
       <!-- Player Wallet Bar -->
@@ -241,6 +253,54 @@
         <button id="btnConfirmSurrender" class="btn-primary btn-danger" type="button">🏳️ XÁC NHẬN ĐẦU HÀNG</button>
         <button id="btnCancelSurrender" class="btn-secondary" type="button">⚔️ TIẾP TỤC CHIẾN ĐẤU</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal: Đăng Nhập & Đăng Ký Tài Khoản -->
+  <div id="authModal" class="modal-overlay hidden">
+    <div class="modal-card auth-card">
+      <div class="auth-tabs">
+        <button id="tabLogin" class="auth-tab active" type="button">🔑 ĐĂNG NHẬP</button>
+        <button id="tabRegister" class="auth-tab" type="button">✨ ĐĂNG KÝ</button>
+      </div>
+      
+      <!-- Login Form -->
+      <form id="formLogin" class="auth-form">
+        <div class="input-group">
+          <label for="loginIdentifier">Tên người dùng hoặc Email:</label>
+          <input type="text" id="loginIdentifier" placeholder="Tên tài khoản hoặc email..." required autocomplete="username">
+        </div>
+        <div class="input-group">
+          <label for="loginPassword">Mật khẩu:</label>
+          <input type="password" id="loginPassword" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
+        </div>
+        <div id="loginMsg" class="auth-message hidden"></div>
+        <div class="auth-actions">
+          <button type="submit" class="btn-primary" id="btnSubmitLogin">🔑 ĐĂNG NHẬP</button>
+          <button type="button" class="btn-secondary" id="btnCloseAuthModal">ĐÓNG</button>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="formRegister" class="auth-form hidden">
+        <div class="input-group">
+          <label for="regUsername">Tên người dùng:</label>
+          <input type="text" id="regUsername" maxlength="20" placeholder="Tên hiển thị trong game..." required autocomplete="username">
+        </div>
+        <div class="input-group">
+          <label for="regEmail">Email:</label>
+          <input type="email" id="regEmail" placeholder="ví_dụ@gmail.com..." required autocomplete="email">
+        </div>
+        <div class="input-group">
+          <label for="regPassword">Mật khẩu:</label>
+          <input type="password" id="regPassword" minlength="4" placeholder="Ít nhất 4 ký tự..." required autocomplete="new-password">
+        </div>
+        <div id="regMsg" class="auth-message hidden"></div>
+        <div class="auth-actions">
+          <button type="submit" class="btn-primary" id="btnSubmitRegister">✨ TẠO TÀI KHOẢN</button>
+          <button type="button" class="btn-secondary" id="btnCloseAuthModal2">ĐÓNG</button>
+        </div>
+      </form>
     </div>
   </div>
 

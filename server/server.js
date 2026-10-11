@@ -33,6 +33,19 @@ app.get('/api/hall-of-fame', async (req, res) => {
   res.json({ success: true, leaderboard: topPlayers });
 });
 
+// Authentication APIs (Đăng Ký & Đăng Nhập)
+app.post('/api/register', async (req, res) => {
+  const { username, email, password } = req.body || {};
+  const result = await db.registerUser(username, email, password);
+  res.json(result);
+});
+
+app.post('/api/login', async (req, res) => {
+  const { identifier, password } = req.body || {};
+  const result = await db.loginUser(identifier, password);
+  res.json(result);
+});
+
 // Initialize Game Engine (Online mode = Only Real Players, zero bots)
 const gameEngine = new GameEngine(io);
 
@@ -53,6 +66,17 @@ gameEngine.onPlayerDeath = async (player) => {
 
 io.on('connection', (socket) => {
   console.log(`[+] Player connected: ${socket.id}`);
+
+  // Auth via Socket
+  socket.on('register', async (data, callback) => {
+    const result = await db.registerUser(data.username, data.email, data.password);
+    if (typeof callback === 'function') callback(result);
+  });
+
+  socket.on('login', async (data, callback) => {
+    const result = await db.loginUser(data.identifier, data.password);
+    if (typeof callback === 'function') callback(result);
+  });
 
   // Fetch or sync user profile
   socket.on('syncUserProfile', async (data) => {

@@ -124,10 +124,12 @@ class OfflineEngine {
     let radius = 6;
     let val = 5;
 
-    if (roll < 0.65) {
+    if (roll < 0.58) {
       typeCode = 1; radius = 6; val = 5;
-    } else if (roll < 0.85) {
+    } else if (roll < 0.78) {
       typeCode = 2; radius = 11; val = 20;
+    } else if (roll < 0.86) {
+      typeCode = 6; radius = 12; val = 10; // ⚡ Hạt Tốc Độ
     } else if (roll < 0.92) {
       typeCode = 3; radius = 16; val = 50;
     } else if (roll < 0.96) {
@@ -307,6 +309,12 @@ class OfflineEngine {
         else if (type === 5) {
           this.player.diceCount++;
           this.events.push({ type: 'dice_pickup', playerId: this.player.id, buffType: 'speed' });
+        }
+        else if (type === 6) {
+          this.player.size += 10;
+          this.player.energy = 100;
+          this.player.buff = { type: 'speed', duration: 4.5 };
+          this.events.push({ type: 'eat_speed_orb', playerId: this.player.id, x: f[2], y: f[3] });
         }
 
         this.foods.splice(i, 1);

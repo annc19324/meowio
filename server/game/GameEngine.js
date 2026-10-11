@@ -8,7 +8,8 @@ const FOOD_TYPE_MAP = {
   'light_big': 2,
   'pate': 3,
   'coin': 4,
-  'dice': 5
+  'dice': 5,
+  'speed_orb': 6
 };
 
 class GameEngine {
@@ -76,8 +77,9 @@ class GameEngine {
 
     if (!type) {
       const roll = Math.random();
-      if (roll < 0.65) type = 'light_small';
-      else if (roll < 0.85) type = 'light_big';
+      if (roll < 0.58) type = 'light_small';
+      else if (roll < 0.78) type = 'light_big';
+      else if (roll < 0.86) type = 'speed_orb'; // ⚡ Hạt Tốc Độ
       else if (roll < 0.92) type = 'pate';
       else if (roll < 0.96) type = 'coin';
       else type = 'dice';
@@ -335,6 +337,17 @@ class GameEngine {
               type: 'coin_pickup',
               playerId: cat.id,
               gold: food.gold
+            });
+          } else if (food.type === 'speed_orb') {
+            cat.size += food.value;
+            cat.energy = 100;
+            cat.buff = { type: 'speed', duration: 4.5 };
+            cat.gold += 2;
+            this.events.push({
+              type: 'eat_speed_orb',
+              playerId: cat.id,
+              x: food.x,
+              y: food.y
             });
           } else if (food.type === 'dice') {
             const buffType = cat.applyDiceBuff();

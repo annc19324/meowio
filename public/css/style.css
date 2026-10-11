@@ -980,4 +980,147 @@ canvas#gameCanvas {
   box-shadow: 0 4px 16px rgba(255, 71, 87, 0.45) !important;
 }
 
+/* =========================================
+   USER ACCOUNT BAR & AUTH MODAL
+========================================= */
+.user-account-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 14px;
+}
+
+.account-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.account-avatar {
+  font-size: 18px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.account-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f1f2f6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.account-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-account-auth {
+  background: linear-gradient(135deg, #70a1ff, #1e90ff);
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30, 144, 255, 0.35);
+  transition: transform 0.1s, filter 0.15s;
+}
+
+.btn-account-auth:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-account-logout {
+  background: rgba(255, 71, 87, 0.2);
+  border: 1px solid rgba(255, 71, 87, 0.4);
+  color: #ff6b81;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-account-logout:hover {
+  background: rgba(255, 71, 87, 0.4);
+  color: #fff;
+}
+
+.auth-card {
+  max-width: 420px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: #a4b0be;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+}
+
+.auth-tab.active {
+  background: linear-gradient(135deg, var(--primary), #ee5253);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 107, 129, 0.35);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.auth-message {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.auth-message.success {
+  background: rgba(46, 213, 115, 0.2);
+  border: 1px solid rgba(46, 213, 115, 0.5);
+  color: #2ed573;
+}
+
+.auth-message.error {
+  background: rgba(255, 71, 87, 0.2);
+  border: 1px solid rgba(255, 71, 87, 0.5);
+  color: #ff6b81;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+
 

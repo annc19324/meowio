@@ -6,29 +6,71 @@ const SKINS_CATALOG = [
   { id: 'gray', name: 'Mèo Xám', icon: '🐱', cost: 200, unlocked: false },
   { id: 'rabbit', name: 'Mèo Thỏ', icon: '🐰', cost: 350, unlocked: false },
   { id: 'fox', name: 'Mèo Cáo', icon: '🦊', cost: 450, unlocked: false },
+  { id: 'tiger', name: 'Mèo Hổ', icon: '🐯', cost: 500, unlocked: false },
+  { id: 'panda', name: 'Gấu Trúc', icon: '🐼', cost: 550, unlocked: false },
   { id: 'lion', name: 'Mèo Sư Tử', icon: '🦁', cost: 600, unlocked: false },
+  { id: 'frog', name: 'Mèo Ếch', icon: '🐸', cost: 650, unlocked: false },
+  { id: 'hamster', name: 'Chuột Hamster', icon: '🐹', cost: 700, unlocked: false },
+  { id: 'mouse', name: 'Mèo Chuột', icon: '🐭', cost: 750, unlocked: false },
+  { id: 'robot', name: 'Mèo Cyber', icon: '🤖', cost: 850, unlocked: false },
+  { id: 'ghost', name: 'Mèo Ma Quái', icon: '👻', cost: 950, unlocked: false },
   { id: 'king', name: 'Hoàng Đế', icon: '👑', cost: 1000, unlocked: false },
+  { id: 'cowboy', name: 'Cao Bồi', icon: '🤠', cost: 1100, unlocked: false },
   { id: 'wizard', name: 'Phù Thủy', icon: '🧙', cost: 1200, unlocked: false },
+  { id: 'space', name: 'Phi Hành Gia', icon: '🚀', cost: 1350, unlocked: false },
+  { id: 'dragon', name: 'Long Vương', icon: '🐉', cost: 1500, unlocked: false },
 ];
 
 class UIController {
   constructor() {
+    let savedName = localStorage.getItem('meow_player_name');
+    if (!savedName || savedName === 'undefined' || savedName === 'null' || savedName.trim() === '') {
+      savedName = 'Mèo Hiệp Sĩ';
+    }
+    this.playerName = savedName;
+
+    this.currentUser = null;
+    try {
+      const storedAcc = localStorage.getItem('meow_user_account');
+      if (storedAcc && storedAcc !== 'undefined') {
+        this.currentUser = JSON.parse(storedAcc);
+        if (this.currentUser && this.currentUser.username) {
+          this.playerName = this.currentUser.username;
+        }
+      }
+    } catch (e) {
+      this.currentUser = null;
+    }
+
     this.gold = parseInt(localStorage.getItem('meow_gold')) || 150; // Starter gold bonus
     this.dice = parseInt(localStorage.getItem('meow_dice')) || 3;   // Starter dice bonus
     this.unlockedSkins = JSON.parse(localStorage.getItem('meow_unlocked_skins')) || ['white', 'orange'];
     this.selectedSkin = localStorage.getItem('meow_selected_skin') || 'white';
+    
     this.initDOM();
     this.renderSkinCarousel();
     this.updateWalletUI();
+    this.updateAccountUI();
     this.onInventoryChange = null;
   }
 
   saveData() {
+    if (!this.playerName || this.playerName === 'undefined' || this.playerName === 'null' || this.playerName.trim() === '') {
+      this.playerName = 'Mèo Hiệp Sĩ';
+    }
     localStorage.setItem('meow_gold', this.gold);
     localStorage.setItem('meow_dice', this.dice);
     localStorage.setItem('meow_unlocked_skins', JSON.stringify(this.unlockedSkins));
     localStorage.setItem('meow_selected_skin', this.selectedSkin);
     localStorage.setItem('meow_player_name', this.playerName);
+
+    if (this.currentUser) {
+      this.currentUser.gold = this.gold;
+      this.currentUser.dice = this.dice;
+      this.currentUser.unlocked_skins = this.unlockedSkins;
+      this.currentUser.selected_skin = this.selectedSkin;
+      localStorage.setItem('meow_user_account', JSON.stringify(this.currentUser));
+    }
 
     if (typeof this.onInventoryChange === 'function') {
       this.onInventoryChange({
@@ -50,6 +92,52 @@ class UIController {
     this.saveData();
     this.updateWalletUI();
     this.renderSkinCarousel();
+  }
+
+  setLoggedInUser(user) {
+    this.currentUser = user;
+    localStorage.setItem('meow_user_account', JSON.stringify(user));
+    this.playerName = user.username;
+    this.playerNameInput.value = user.username;
+    if (user.gold !== undefined) this.gold = user.gold;
+    if (user.dice !== undefined) this.dice = user.dice;
+    if (user.unlocked_skins && Array.isArray(user.unlocked_skins)) {
+      this.unlockedSkins = user.unlocked_skins;
+    }
+    if (user.selected_skin) {
+      this.selectedSkin = user.selected_skin;
+    }
+    this.saveData();
+    this.updateWalletUI();
+    this.updateAccountUI();
+    this.renderSkinCarousel();
+
+    const authModal = document.getElementById('authModal');
+    if (authModal) authModal.classList.add('hidden');
+    alert(`🎉 Chào mừng trở lại, ${user.username}! Toàn bộ dữ liệu tài khoản đã được đồng bộ.`);
+  }
+
+  logout() {
+    this.currentUser = null;
+    localStorage.removeItem('meow_user_account');
+    this.updateAccountUI();
+    alert('Đã đăng xuất tài khoản. Bạn đang ở chế độ khách!');
+  }
+
+  updateAccountUI() {
+    const nameText = document.getElementById('accountUsernameText');
+    const btnOpenAuth = document.getElementById('btnOpenAuthModal');
+    const btnLogout = document.getElementById('btnLogout');
+
+    if (this.currentUser) {
+      if (nameText) nameText.textContent = `🐾 ${this.currentUser.username}`;
+      if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
+      if (btnLogout) btnLogout.classList.remove('hidden');
+    } else {
+      if (nameText) nameText.textContent = 'Khách (Chưa đăng nhập)';
+      if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
+      if (btnLogout) btnLogout.classList.add('hidden');
+    }
   }
 
   initDOM() {
@@ -78,9 +166,19 @@ class UIController {
     this.killFeed = document.getElementById('killFeed');
     this.buffBanner = document.getElementById('buffBanner');
 
-    // Event listeners
+    // Event listeners for Player Name Input
+    this.playerNameInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      if (val && val !== 'undefined' && val !== 'null') {
+        this.playerName = val;
+        localStorage.setItem('meow_player_name', this.playerName);
+      }
+    });
+
     this.playerNameInput.addEventListener('change', (e) => {
-      this.playerName = e.target.value.trim() || 'Mèo Hiệp Sĩ';
+      const val = e.target.value.trim();
+      this.playerName = (val && val !== 'undefined' && val !== 'null') ? val : 'Mèo Hiệp Sĩ';
+      this.playerNameInput.value = this.playerName;
       this.saveData();
     });
 
@@ -94,6 +192,128 @@ class UIController {
     document.getElementById('btnDoRoll').addEventListener('click', () => {
       this.performDiceRoll();
     });
+
+    // Wire up Auth Modal & Controls
+    this.initAuthUI();
+  }
+
+  initAuthUI() {
+    const authModal = document.getElementById('authModal');
+    const btnOpenAuth = document.getElementById('btnOpenAuthModal');
+    const btnLogout = document.getElementById('btnLogout');
+    const btnClose1 = document.getElementById('btnCloseAuthModal');
+    const btnClose2 = document.getElementById('btnCloseAuthModal2');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const formLogin = document.getElementById('formLogin');
+    const formRegister = document.getElementById('formRegister');
+    const loginMsg = document.getElementById('loginMsg');
+    const regMsg = document.getElementById('regMsg');
+
+    if (btnOpenAuth) {
+      btnOpenAuth.addEventListener('click', () => {
+        if (loginMsg) loginMsg.classList.add('hidden');
+        if (regMsg) regMsg.classList.add('hidden');
+        authModal.classList.remove('hidden');
+      });
+    }
+
+    if (btnLogout) {
+      btnLogout.addEventListener('click', () => {
+        this.logout();
+      });
+    }
+
+    const closeFn = () => authModal.classList.add('hidden');
+    if (btnClose1) btnClose1.addEventListener('click', closeFn);
+    if (btnClose2) btnClose2.addEventListener('click', closeFn);
+
+    if (tabLogin && tabRegister) {
+      tabLogin.addEventListener('click', () => {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        formLogin.classList.remove('hidden');
+        formRegister.classList.add('hidden');
+        if (loginMsg) loginMsg.classList.add('hidden');
+      });
+
+      tabRegister.addEventListener('click', () => {
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        formRegister.classList.remove('hidden');
+        formLogin.classList.add('hidden');
+        if (regMsg) regMsg.classList.add('hidden');
+      });
+    }
+
+    // Submit Login
+    if (formLogin) {
+      formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const identifier = document.getElementById('loginIdentifier').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        loginMsg.className = 'auth-message';
+        loginMsg.textContent = 'Đang kiểm tra đăng nhập...';
+        loginMsg.classList.remove('hidden');
+
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier, password })
+          });
+          const data = await res.json();
+          if (data.success && data.user) {
+            loginMsg.className = 'auth-message success';
+            loginMsg.textContent = '✅ Đăng nhập thành công!';
+            setTimeout(() => {
+              this.setLoggedInUser(data.user);
+            }, 600);
+          } else {
+            loginMsg.className = 'auth-message error';
+            loginMsg.textContent = '❌ ' + (data.message || 'Sai thông tin tài khoản!');
+          }
+        } catch (err) {
+          loginMsg.className = 'auth-message error';
+          loginMsg.textContent = '❌ Lỗi kết nối server: ' + err.message;
+        }
+      });
+    }
+
+    // Submit Register
+    if (formRegister) {
+      formRegister.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value.trim();
+        const email = document.getElementById('regEmail').value.trim();
+        const password = document.getElementById('regPassword').value;
+        regMsg.className = 'auth-message';
+        regMsg.textContent = 'Đang đăng ký tài khoản mới...';
+        regMsg.classList.remove('hidden');
+
+        try {
+          const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+          });
+          const data = await res.json();
+          if (data.success && data.user) {
+            regMsg.className = 'auth-message success';
+            regMsg.textContent = '✨ Đăng ký thành công! Đang lưu thông tin...';
+            setTimeout(() => {
+              this.setLoggedInUser(data.user);
+            }, 600);
+          } else {
+            regMsg.className = 'auth-message error';
+            regMsg.textContent = '❌ ' + (data.message || 'Đăng ký thất bại!');
+          }
+        } catch (err) {
+          regMsg.className = 'auth-message error';
+          regMsg.textContent = '❌ Lỗi kết nối server: ' + err.message;
+        }
+      });
+    }
   }
 
   renderSkinCarousel() {

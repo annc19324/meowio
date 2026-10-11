@@ -287,6 +287,25 @@ class GameRenderer {
           ctx.fill();
           break;
         }
+
+        case 6: { // speed_orb ⚡ Hạt Tốc Độ
+          ctx.fillStyle = 'rgba(255, 234, 167, 0.45)';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * 1.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#f1c40f';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px Fredoka';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⚡', fx, fy);
+          break;
+        }
       }
     }
   }
@@ -384,6 +403,68 @@ class GameRenderer {
       return;
     }
 
+    if (cat.skin === 'panda') {
+      ctx.fillStyle = '#2d3436';
+      ctx.beginPath();
+      ctx.arc(-r * 0.1, -r * 0.95, r * 0.35, 0, Math.PI * 2);
+      ctx.arc(-r * 0.1, r * 0.95, r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
+    if (cat.skin === 'mouse') {
+      ctx.fillStyle = '#bdc581';
+      ctx.beginPath();
+      ctx.arc(-r * 0.1, -r * 1.0, r * 0.42, 0, Math.PI * 2);
+      ctx.arc(-r * 0.1, r * 1.0, r * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fab1a0';
+      ctx.beginPath();
+      ctx.arc(-r * 0.1, -r * 1.0, r * 0.25, 0, Math.PI * 2);
+      ctx.arc(-r * 0.1, r * 1.0, r * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
+    if (cat.skin === 'frog') {
+      // Big frog bulging eyes on top
+      ctx.fillStyle = '#2ecc71';
+      ctx.beginPath();
+      ctx.arc(r * 0.1, -r * 0.88, r * 0.35, 0, Math.PI * 2);
+      ctx.arc(r * 0.1, r * 0.88, r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(r * 0.1, -r * 0.88, r * 0.2, 0, Math.PI * 2);
+      ctx.arc(r * 0.1, r * 0.88, r * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#2d3436';
+      ctx.beginPath();
+      ctx.arc(r * 0.15, -r * 0.88, r * 0.1, 0, Math.PI * 2);
+      ctx.arc(r * 0.15, r * 0.88, r * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
+    if (cat.skin === 'dragon') {
+      // Golden dragon horns
+      ctx.fillStyle = '#f9ca24';
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.1, -r * 0.6);
+      ctx.lineTo(-r * 0.4, -r * 1.25);
+      ctx.lineTo(r * 0.15, -r * 0.7);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.1, r * 0.6);
+      ctx.lineTo(-r * 0.4, r * 1.25);
+      ctx.lineTo(r * 0.15, r * 0.7);
+      ctx.closePath();
+      ctx.fill();
+      return;
+    }
+
     // Normal ears
     ctx.fillStyle = earColor;
     ctx.beginPath();
@@ -422,7 +503,7 @@ class GameRenderer {
     const eyeOffset = r * 0.42;
     const eyeForward = r * 0.4;
     const eyeRadius = r * 0.22;
-    const eyeColor = (cat.skin === 'black') ? '#f1c40f' : (cat.skin === 'orange' ? '#2ecc71' : '#3498db');
+    const eyeColor = (cat.skin === 'black') ? '#f1c40f' : (cat.skin === 'orange' ? '#2ecc71' : (cat.skin === 'robot' ? '#00d2d3' : (cat.skin === 'dragon' ? '#f9ca24' : '#3498db')));
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
@@ -481,6 +562,87 @@ class GameRenderer {
       ctx.moveTo(-r * 0.3, r * 0.5);
       ctx.lineTo(0, r * 0.2);
       ctx.stroke();
+    } else if (cat.skin === 'tiger') {
+      ctx.strokeStyle = '#2d3436';
+      ctx.lineWidth = Math.max(2, r * 0.08);
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.4, -r * 0.6);
+      ctx.lineTo(0, -r * 0.2);
+      ctx.moveTo(-r * 0.2, -r * 0.7);
+      ctx.lineTo(r * 0.2, -r * 0.3);
+      ctx.moveTo(-r * 0.4, r * 0.6);
+      ctx.lineTo(0, r * 0.2);
+      ctx.moveTo(-r * 0.2, r * 0.7);
+      ctx.lineTo(r * 0.2, r * 0.3);
+      ctx.stroke();
+    } else if (cat.skin === 'panda') {
+      ctx.fillStyle = '#2d3436';
+      ctx.beginPath();
+      ctx.ellipse(r * 0.42, -r * 0.42, r * 0.28, r * 0.22, 0.3, 0, Math.PI * 2);
+      ctx.ellipse(r * 0.42, r * 0.42, r * 0.28, r * 0.22, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (cat.skin === 'hamster') {
+      ctx.fillStyle = 'rgba(255, 118, 117, 0.65)';
+      ctx.beginPath();
+      ctx.arc(r * 0.38, -r * 0.52, r * 0.22, 0, Math.PI * 2);
+      ctx.arc(r * 0.38, r * 0.52, r * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (cat.skin === 'robot') {
+      // Cyber neon visor & antenna
+      ctx.strokeStyle = '#00d2d3';
+      ctx.lineWidth = Math.max(3, r * 0.09);
+      ctx.beginPath();
+      ctx.moveTo(r * 0.45, -r * 0.52);
+      ctx.lineTo(r * 0.45, r * 0.52);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#dfe4ea';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-r * 0.6, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#ff4757';
+      ctx.beginPath();
+      ctx.arc(-r * 0.65, 0, r * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (cat.skin === 'ghost') {
+      // Ethereal outer glow aura
+      ctx.strokeStyle = 'rgba(126, 214, 223, 0.55)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.15, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (cat.skin === 'cowboy') {
+      // Brown cowboy hat
+      ctx.fillStyle = '#8b5a2b';
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.05, 0, r * 0.35, r * 0.72, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#5c3a21';
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.1, 0, r * 0.22, r * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (cat.skin === 'space') {
+      // Glass helmet visor
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 2.5;
+      ctx.fillStyle = 'rgba(72, 219, 251, 0.25)';
+      ctx.beginPath();
+      ctx.arc(r * 0.2, 0, r * 0.75, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (cat.skin === 'dragon') {
+      // Dragon spikes on back
+      ctx.fillStyle = '#f9ca24';
+      for (let s = -0.6; s <= 0.6; s += 0.4) {
+        ctx.beginPath();
+        ctx.moveTo(-r * 0.85, r * s);
+        ctx.lineTo(-r * 1.15, r * s);
+        ctx.lineTo(-r * 0.65, r * (s + 0.2));
+        ctx.closePath();
+        ctx.fill();
+      }
     } else if (cat.skin === 'king') {
       ctx.fillStyle = '#f1c40f';
       ctx.strokeStyle = '#e67e22';
@@ -747,8 +909,18 @@ class GameRenderer {
       case 'rabbit': return '#f5f6fa';
       case 'fox': return '#e17055';
       case 'lion': return '#f39c12';
+      case 'tiger': return '#e67e22';
+      case 'panda': return '#ffffff';
+      case 'frog': return '#2ecc71';
+      case 'hamster': return '#e58e26';
+      case 'mouse': return '#bdc581';
+      case 'robot': return '#747d8c';
+      case 'ghost': return '#dff9fb';
       case 'king': return '#fdcb6e';
+      case 'cowboy': return '#d35400';
       case 'wizard': return '#6c5ce7';
+      case 'space': return '#0984e3';
+      case 'dragon': return '#eb4d4b';
       default: return '#ffffff';
     }
   }
@@ -759,6 +931,13 @@ class GameRenderer {
       case 'orange': return '#ffffff';
       case 'black': return '#1e272e';
       case 'gray': return '#dfe4ea';
+      case 'panda': return '#2d3436';
+      case 'robot': return '#57606f';
+      case 'dragon': return '#ff7979';
+      case 'frog': return '#27ae60';
+      case 'ghost': return '#c7ecee';
+      case 'cowboy': return '#8395a7';
+      case 'space': return '#dfe4ea';
       default: return '#ffffff';
     }
   }
