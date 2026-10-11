@@ -50,6 +50,11 @@
         <span class="loot-item">🎲 <span id="hudDice">0</span></span>
         <span class="loot-item mode-tag" id="hudModeTag">ONLINE</span>
       </div>
+
+      <!-- Surrender / Exit Button -->
+      <button id="btnSurrender" class="btn-hud-surrender" type="button" title="Đầu hàng và thoát khỏi trận đấu">
+        🏳️ ĐẦU HÀNG / THOÁT
+      </button>
     </div>
 
     <!-- Leaderboard Top 10 (Top-Right) -->
@@ -217,6 +222,24 @@
           📥 TẢI XUỐNG .APK
         </a>
         <button id="btnCloseDownloadModal" class="btn-secondary" type="button">ĐÓNG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Surrender Confirmation Modal -->
+  <div id="surrenderModal" class="modal-overlay hidden">
+    <div class="modal-card surrender-card">
+      <div class="surrender-icon">🏳️</div>
+      <h2>ĐẦU HÀNG & THOÁT TRẬN?</h2>
+      <p>Bạn có chắc chắn muốn rời khỏi trận đấu?</p>
+      
+      <div class="surrender-reward-notice">
+        ✨ <b>Yên tâm:</b> Toàn bộ số <b>Vàng 🪙</b> và <b>Xúc Xắc 🎲</b> bạn đã nhặt được trong trận này vẫn sẽ được <b>lưu lại đầy đủ</b> vào tài khoản!
+      </div>
+
+      <div class="game-over-actions">
+        <button id="btnConfirmSurrender" class="btn-primary btn-danger" type="button">🏳️ XÁC NHẬN ĐẦU HÀNG</button>
+        <button id="btnCancelSurrender" class="btn-secondary" type="button">⚔️ TIẾP TỤC CHIẾN ĐẤU</button>
       </div>
     </div>
   </div>

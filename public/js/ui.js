@@ -283,12 +283,26 @@ class UIController {
     }, 2500);
   }
 
-  showGameOver(score, goldEarned, diceEarned) {
+  showGameOver(score, goldEarned, diceEarned, isSurrendered = false) {
     // Add rewards to local storage
     this.gold += goldEarned;
     this.dice += diceEarned;
     this.saveData();
     this.updateWalletUI();
+
+    const titleEl = document.querySelector('#gameOverScreen h2');
+    const subtitleEl = document.querySelector('.game-over-subtitle');
+    const iconEl = document.querySelector('.game-over-icon');
+
+    if (isSurrendered) {
+      if (iconEl) iconEl.textContent = '🏳️';
+      if (titleEl) titleEl.textContent = 'ĐÃ ĐẦU HÀNG & BẢO LƯU!';
+      if (subtitleEl) subtitleEl.textContent = 'Phần thưởng của bạn đã được bảo lưu an toàn!';
+    } else {
+      if (iconEl) iconEl.textContent = '💥';
+      if (titleEl) titleEl.textContent = 'MÈO ĐÃ BỊ HẠ!';
+      if (subtitleEl) subtitleEl.textContent = 'Bạn đã chiến đấu rất dũng cảm!';
+    }
 
     document.getElementById('finalScore').textContent = `🐱 ${score}`;
     document.getElementById('finalGold').textContent = `🪙 +${goldEarned}`;

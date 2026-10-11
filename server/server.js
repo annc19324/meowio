@@ -107,6 +107,24 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('surrender', () => {
+    const player = gameEngine.players.get(socket.id);
+    if (player && player.alive) {
+      player.alive = false;
+      player.hasHandledDeath = true;
+      gameEngine.dropDeathLoot(player);
+      if (typeof gameEngine.onPlayerDeath === 'function') {
+        gameEngine.onPlayerDeath(player);
+      }
+      socket.emit('gameOver', {
+        score: player.size,
+        goldEarned: player.gold,
+        diceEarned: player.diceCount,
+        isSurrendered: true
+      });
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`[-] Player disconnected: ${socket.id}`);
     gameEngine.removePlayer(socket.id);

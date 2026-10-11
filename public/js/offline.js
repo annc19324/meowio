@@ -92,6 +92,21 @@ class OfflineEngine {
     }
   }
 
+  surrender() {
+    if (this.player && this.player.alive) {
+      this.player.alive = false;
+      this.stop();
+      if (typeof this.onGameOver === 'function') {
+        this.onGameOver({
+          score: this.player.size,
+          goldEarned: this.player.gold,
+          diceEarned: this.player.diceCount,
+          isSurrendered: true
+        });
+      }
+    }
+  }
+
   setInput(targetAngle, isBoosting) {
     if (this.player && this.player.alive) {
       this.player.targetAngle = targetAngle;

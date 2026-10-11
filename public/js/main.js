@@ -125,7 +125,7 @@ window.addEventListener('DOMContentLoaded', () => {
         (overData) => {
           isGameActive = false;
           offlineEngine.stop();
-          ui.showGameOver(overData.score, overData.goldEarned, overData.diceEarned);
+          ui.showGameOver(overData.score, overData.goldEarned, overData.diceEarned, overData.isSurrendered);
         }
       );
     }
@@ -144,8 +144,41 @@ window.addEventListener('DOMContentLoaded', () => {
   socket.on('gameOver', (data) => {
     if (gameMode !== 'online') return;
     isGameActive = false;
-    ui.showGameOver(data.score, data.goldEarned, data.diceEarned);
+    ui.showGameOver(data.score, data.goldEarned, data.diceEarned, data.isSurrendered);
   });
+
+  // Surrender / Exit Button Handlers
+  const btnSurrender = document.getElementById('btnSurrender');
+  const surrenderModal = document.getElementById('surrenderModal');
+  const btnConfirmSurrender = document.getElementById('btnConfirmSurrender');
+  const btnCancelSurrender = document.getElementById('btnCancelSurrender');
+
+  if (btnSurrender) {
+    btnSurrender.addEventListener('click', () => {
+      if (isGameActive) {
+        surrenderModal.classList.remove('hidden');
+      }
+    });
+  }
+
+  if (btnCancelSurrender) {
+    btnCancelSurrender.addEventListener('click', () => {
+      surrenderModal.classList.add('hidden');
+    });
+  }
+
+  if (btnConfirmSurrender) {
+    btnConfirmSurrender.addEventListener('click', () => {
+      surrenderModal.classList.add('hidden');
+      if (!isGameActive) return;
+
+      if (gameMode === 'online') {
+        socket.emit('surrender');
+      } else {
+        offlineEngine.surrender();
+      }
+    });
+  }
 
   // 4. Online State Handling
   socket.on('state', (state) => {

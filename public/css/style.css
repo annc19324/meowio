@@ -810,3 +810,48 @@ canvas#gameCanvas {
   font-family: monospace;
 }
 
+/* =========================================
+   SURRENDER / EXIT BUTTON & MODAL
+========================================= */
+.btn-hud-surrender {
+  margin-top: 4px;
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 71, 87, 0.4);
+  background: rgba(255, 71, 87, 0.15);
+  color: #ff6b81;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.btn-hud-surrender:hover {
+  background: rgba(255, 71, 87, 0.35);
+  border-color: #ff4757;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.surrender-icon {
+  font-size: 50px;
+}
+
+.surrender-reward-notice {
+  background: rgba(46, 213, 115, 0.12);
+  border: 1px solid rgba(46, 213, 115, 0.35);
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #2ed573;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff4757, #c0392b) !important;
+  box-shadow: 0 4px 16px rgba(255, 71, 87, 0.45) !important;
+}
+
+
