@@ -1,0 +1,16 @@
+{
+  "name": "meow-io",
+  "version": "1.0.0",
+  "description": "Meow.io - Casual multiplayer cat combat and light collection game",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.7",
+    "express": "^4.21.2",
+    "pg": "^8.23.1",
+    "socket.io": "^4.8.1"
+  }
+}

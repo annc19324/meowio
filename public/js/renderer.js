@@ -1,0 +1,753 @@
+// High-Performance Zero-Lag HTML5 Canvas Renderer for Meow.io
+class GameRenderer {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d', { alpha: false }); // Disable canvas alpha for maximum GPU performance
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+
+    this.camera = { x: 5000, y: 5000, zoom: 1.0 };
+    this.particles = [];
+    this.floatingTexts = [];
+    this.scratchEffects = [];
+    this.ambientStars = [];
+    this.latestMinimap = [];
+
+    this.initCanvasSize();
+    this.initAmbientStars();
+    window.addEventListener('resize', () => this.initCanvasSize());
+  }
+
+  initCanvasSize() {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
+  }
+
+  initAmbientStars() {
+    this.ambientStars = [];
+    for (let i = 0; i < 180; i++) {
+      this.ambientStars.push({
+        x: Math.random() * 10000,
+        y: Math.random() * 10000,
+        r: Math.random() * 1.5 + 0.5,
+        alpha: Math.random() * 0.4 + 0.15
+      });
+    }
+  }
+
+  addFloatingText(text, x, y, color = '#ff4757', size = 16) {
+    this.floatingTexts.push({
+      text, x, y, color, size,
+      vy: -1.6,
+      life: 0.9
+    });
+  }
+
+  addScratchEffect(x, y, angle) {
+    this.scratchEffects.push({
+      x, y, angle,
+      life: 0.28,
+      maxLife: 0.28
+    });
+  }
+
+  addSparks(x, y, color = '#ffa502', count = 5) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const spd = Math.random() * 80 + 20;
+      this.particles.push({
+        x, y,
+        vx: Math.cos(a) * spd,
+        vy: Math.sin(a) * spd,
+        color,
+        size: Math.random() * 2.5 + 1.5,
+        life: 0.35,
+        maxLife: 0.35
+      });
+    }
+  }
+
+  render(gameState, localPlayerId, dt, animTime) {
+    const ctx = this.ctx;
+    if (!gameState) {
+      ctx.fillStyle = '#0a0e1a';
+      ctx.fillRect(0, 0, this.width, this.height);
+      return;
+    }
+
+    if (gameState.minimap) {
+      this.latestMinimap = gameState.minimap;
+    }
+
+    // 1. Follow Local Player smoothly
+    const me = gameState.players.find(p => p.id === localPlayerId);
+    if (me) {
+      this.camera.x += (me.x - this.camera.x) * 0.15;
+      this.camera.y += (me.y - this.camera.y) * 0.15;
+      const targetZoom = Math.max(0.68, 1.0 - (me.size - 100) * 0.00035);
+      this.camera.zoom += (targetZoom - this.camera.zoom) * 0.08;
+    }
+
+    const zoom = this.camera.zoom;
+    const halfW = (this.width / 2) / zoom + 80;
+    const halfH = (this.height / 2) / zoom + 80;
+
+    ctx.save();
+    ctx.translate(this.width / 2, this.height / 2);
+    ctx.scale(zoom, zoom);
+    ctx.translate(-this.camera.x, -this.camera.y);
+
+    const mapSize = gameState.mapSize || 10000;
+
+    // 2. Draw World Background & Culled Grid
+    this.drawBackground(ctx, mapSize, halfW, halfH);
+
+    // 3. Draw Foods (Culled & Zero shadowBlur)
+    this.drawFoods(ctx, gameState.foods, halfW, halfH, animTime);
+
+    // 4. Draw Cats
+    for (let i = 0; i < gameState.players.length; i++) {
+      const cat = gameState.players[i];
+      if (Math.abs(cat.x - this.camera.x) <= halfW + 100 && Math.abs(cat.y - this.camera.y) <= halfH + 100) {
+        this.drawCat(ctx, cat, cat.id === localPlayerId, animTime);
+      }
+    }
+
+    // 5. Draw Combat Scratch Slash Effects
+    this.drawScratchEffects(ctx, dt);
+
+    // 6. Draw Particles
+    this.drawParticles(ctx, dt);
+
+    // 7. Draw Floating Texts
+    this.drawFloatingTexts(ctx, dt);
+
+    ctx.restore();
+
+    // 8. Draw MiniMap Radar in Screen Space
+    this.drawMinimap(ctx, mapSize, localPlayerId);
+  }
+
+  drawBackground(ctx, mapSize, halfW, halfH) {
+    // Fill canvas background
+    ctx.fillStyle = '#0a0e1a';
+    ctx.fillRect(this.camera.x - halfW, this.camera.y - halfH, halfW * 2, halfH * 2);
+
+    // Culled grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+    ctx.lineWidth = 1;
+    const gridSize = 140;
+
+    const startX = Math.max(0, Math.floor((this.camera.x - halfW) / gridSize) * gridSize);
+    const endX = Math.min(mapSize, Math.ceil((this.camera.x + halfW) / gridSize) * gridSize);
+    const startY = Math.max(0, Math.floor((this.camera.y - halfH) / gridSize) * gridSize);
+    const endY = Math.min(mapSize, Math.ceil((this.camera.y + halfH) / gridSize) * gridSize);
+
+    ctx.beginPath();
+    for (let x = startX; x <= endX; x += gridSize) {
+      ctx.moveTo(x, startY);
+      ctx.lineTo(x, endY);
+    }
+    for (let y = startY; y <= endY; y += gridSize) {
+      ctx.moveTo(startX, y);
+      ctx.lineTo(endX, y);
+    }
+    ctx.stroke();
+
+    // Map Glowing Borders
+    ctx.strokeStyle = '#ff4757';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(0, 0, mapSize, mapSize);
+  }
+
+  drawFoods(ctx, foods, halfW, halfH, animTime) {
+    if (!foods) return;
+
+    for (let i = 0; i < foods.length; i++) {
+      const f = foods[i];
+      // Format: [id, typeCode, x, y, radius] or object
+      let fx, fy, typeCode, radius;
+      if (Array.isArray(f)) {
+        typeCode = f[1];
+        fx = f[2];
+        fy = f[3];
+        radius = f[4];
+      } else {
+        typeCode = f.t === 'light_small' ? 1 : f.t === 'light_big' ? 2 : f.t === 'pate' ? 3 : f.t === 'coin' ? 4 : 5;
+        fx = f.x;
+        fy = f.y;
+        radius = f.r;
+      }
+
+      // Viewport culling
+      if (Math.abs(fx - this.camera.x) > halfW || Math.abs(fy - this.camera.y) > halfH) {
+        continue;
+      }
+
+      switch (typeCode) {
+        case 1: { // light_small
+          ctx.fillStyle = 'rgba(72, 219, 251, 0.35)';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * 1.6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#48dbfb';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case 2: { // light_big
+          ctx.fillStyle = 'rgba(255, 159, 67, 0.35)';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * 1.7, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ff9f43';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+
+        case 3: { // pate 🥫
+          ctx.fillStyle = 'rgba(238, 82, 83, 0.3)';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * 1.4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Can body
+          ctx.fillStyle = '#ee5253';
+          ctx.beginPath();
+          ctx.roundRect(fx - 13, fy - 9, 26, 18, 4);
+          ctx.fill();
+
+          // Gold lid
+          ctx.fillStyle = '#feca57';
+          ctx.beginPath();
+          ctx.ellipse(fx, fy - 9, 13, 4, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 8px Nunito';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('PATE', fx, fy + 1);
+          break;
+        }
+
+        case 4: { // coin 🪙
+          ctx.fillStyle = '#ffa502';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#ffeaa7';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffeaa7';
+          ctx.font = 'bold 10px Fredoka';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🪙', fx, fy);
+          break;
+        }
+
+        case 5: { // dice 🎲
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.roundRect(fx - 11, fy - 11, 22, 22, 4);
+          ctx.fill();
+
+          ctx.fillStyle = '#a55eea';
+          ctx.beginPath();
+          ctx.arc(fx - 4, fy - 4, 2.2, 0, Math.PI * 2);
+          ctx.arc(fx, fy, 2.2, 0, Math.PI * 2);
+          ctx.arc(fx + 4, fy + 4, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+        }
+      }
+    }
+  }
+
+  drawCat(ctx, cat, isLocalPlayer, animTime) {
+    const r = cat.radius;
+
+    ctx.save();
+    ctx.translate(cat.x, cat.y);
+
+    // Boost effect trail
+    if (cat.isBoosting) {
+      const trailAngle = cat.angle + Math.PI;
+      const trailX = Math.cos(trailAngle) * (r * 0.9);
+      const trailY = Math.sin(trailAngle) * (r * 0.9);
+
+      ctx.fillStyle = 'rgba(46, 213, 115, 0.4)';
+      ctx.beginPath();
+      ctx.arc(trailX, trailY, r * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Shield bubble
+    if (cat.shieldHits > 0) {
+      ctx.strokeStyle = 'rgba(112, 161, 255, 0.8)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Rotate towards movement angle
+    ctx.rotate(cat.angle);
+
+    // 1. Cat Tail
+    const tailSwing = Math.sin(animTime * 6) * 0.35;
+    ctx.save();
+    ctx.translate(-r * 0.95, 0);
+    ctx.rotate(Math.PI + tailSwing);
+    ctx.strokeStyle = this.getCatMainColor(cat.skin);
+    ctx.lineWidth = r * 0.28;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(r * 0.5, r * 0.3, r * 0.8, 0);
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Cat Body
+    ctx.fillStyle = this.getCatMainColor(cat.skin);
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Skin patterns
+    this.drawSkinCostume(ctx, cat, r);
+
+    // 3. Cat Ears
+    this.drawCatEars(ctx, cat, r);
+
+    // 4. Cat Eyes & Face
+    this.drawCatFace(ctx, cat, r);
+
+    // 5. FRONT PAWS (2 CHÂN TRƯỚC)
+    this.drawFrontPaws(ctx, cat, r, animTime);
+
+    ctx.restore(); // Restore cat rotation
+
+    // 6. Overhead Health Bar & Nametag
+    this.drawOverheadHUD(ctx, cat, isLocalPlayer);
+  }
+
+  drawCatEars(ctx, cat, r) {
+    const earColor = this.getCatMainColor(cat.skin);
+    const innerEarColor = '#ffb8b8';
+
+    if (cat.skin === 'rabbit') {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.2, -r * 1.3, r * 0.22, r * 0.6, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = innerEarColor;
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.2, -r * 1.3, r * 0.12, r * 0.45, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.2, r * 1.3, r * 0.22, r * 0.6, 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = innerEarColor;
+      ctx.beginPath();
+      ctx.ellipse(-r * 0.2, r * 1.3, r * 0.12, r * 0.45, 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
+    // Normal ears
+    ctx.fillStyle = earColor;
+    ctx.beginPath();
+    ctx.moveTo(r * 0.1, -r * 0.95);
+    ctx.lineTo(r * 0.6, -r * 0.7);
+    ctx.lineTo(-r * 0.1, -r * 0.45);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = innerEarColor;
+    ctx.beginPath();
+    ctx.moveTo(r * 0.15, -r * 0.88);
+    ctx.lineTo(r * 0.5, -r * 0.7);
+    ctx.lineTo(0, -r * 0.52);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = earColor;
+    ctx.beginPath();
+    ctx.moveTo(r * 0.1, r * 0.95);
+    ctx.lineTo(r * 0.6, r * 0.7);
+    ctx.lineTo(-r * 0.1, r * 0.45);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = innerEarColor;
+    ctx.beginPath();
+    ctx.moveTo(r * 0.15, r * 0.88);
+    ctx.lineTo(r * 0.5, r * 0.7);
+    ctx.lineTo(0, r * 0.52);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawCatFace(ctx, cat, r) {
+    const eyeOffset = r * 0.42;
+    const eyeForward = r * 0.4;
+    const eyeRadius = r * 0.22;
+    const eyeColor = (cat.skin === 'black') ? '#f1c40f' : (cat.skin === 'orange' ? '#2ecc71' : '#3498db');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(eyeForward, -eyeOffset, eyeRadius, 0, Math.PI * 2);
+    ctx.arc(eyeForward, eyeOffset, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = eyeColor;
+    ctx.beginPath();
+    ctx.arc(eyeForward + eyeRadius * 0.25, -eyeOffset, eyeRadius * 0.7, 0, Math.PI * 2);
+    ctx.arc(eyeForward + eyeRadius * 0.25, eyeOffset, eyeRadius * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#1e272e';
+    ctx.beginPath();
+    ctx.arc(eyeForward + eyeRadius * 0.35, -eyeOffset, eyeRadius * 0.45, 0, Math.PI * 2);
+    ctx.arc(eyeForward + eyeRadius * 0.35, eyeOffset, eyeRadius * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(eyeForward + eyeRadius * 0.2, -eyeOffset - eyeRadius * 0.2, eyeRadius * 0.25, 0, Math.PI * 2);
+    ctx.arc(eyeForward + eyeRadius * 0.2, eyeOffset - eyeRadius * 0.2, eyeRadius * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ff7675';
+    ctx.beginPath();
+    ctx.moveTo(r * 0.65, 0);
+    ctx.lineTo(r * 0.52, -r * 0.08);
+    ctx.lineTo(r * 0.52, r * 0.08);
+    ctx.closePath();
+    ctx.fill();
+
+    // Whiskers
+    ctx.strokeStyle = cat.skin === 'black' ? '#ffffff' : '#636e72';
+    ctx.lineWidth = Math.max(1, r * 0.04);
+    ctx.beginPath();
+    ctx.moveTo(r * 0.45, -r * 0.2);
+    ctx.lineTo(r * 0.3, -r * 0.65);
+    ctx.moveTo(r * 0.45, -r * 0.28);
+    ctx.lineTo(r * 0.35, -r * 0.78);
+    ctx.moveTo(r * 0.45, r * 0.2);
+    ctx.lineTo(r * 0.3, r * 0.65);
+    ctx.moveTo(r * 0.45, r * 0.28);
+    ctx.lineTo(r * 0.35, r * 0.78);
+    ctx.stroke();
+  }
+
+  drawSkinCostume(ctx, cat, r) {
+    if (cat.skin === 'orange') {
+      ctx.strokeStyle = '#d35400';
+      ctx.lineWidth = r * 0.08;
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.3, -r * 0.5);
+      ctx.lineTo(0, -r * 0.2);
+      ctx.moveTo(-r * 0.3, r * 0.5);
+      ctx.lineTo(0, r * 0.2);
+      ctx.stroke();
+    } else if (cat.skin === 'king') {
+      ctx.fillStyle = '#f1c40f';
+      ctx.strokeStyle = '#e67e22';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.2, -r * 0.5);
+      ctx.lineTo(r * 0.2, -r * 0.65);
+      ctx.lineTo(0, -r * 0.3);
+      ctx.lineTo(r * 0.2, 0);
+      ctx.lineTo(0, r * 0.3);
+      ctx.lineTo(r * 0.2, r * 0.65);
+      ctx.lineTo(-r * 0.2, r * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else if (cat.skin === 'wizard') {
+      ctx.fillStyle = '#8e44ad';
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.4, -r * 0.5);
+      ctx.lineTo(r * 0.1, 0);
+      ctx.lineTo(-r * 0.4, r * 0.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  drawFrontPaws(ctx, cat, r, animTime) {
+    const pawColor = this.getCatPawColor(cat.skin);
+    const pawRadius = r * 0.32;
+    const pawDist = r * 0.82;
+    const pawSpread = r * 0.65;
+
+    let leftOffset = 0;
+    let rightOffset = 0;
+
+    if (cat.isScratching) {
+      leftOffset = r * 0.45;
+      rightOffset = r * 0.45;
+    } else {
+      const paddle = Math.sin(animTime * 10);
+      leftOffset = paddle * (r * 0.1);
+      rightOffset = -paddle * (r * 0.1);
+    }
+
+    // Left Paw
+    ctx.save();
+    ctx.translate(pawDist + leftOffset, -pawSpread);
+    ctx.fillStyle = pawColor;
+    ctx.beginPath();
+    ctx.arc(0, 0, pawRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ff7675';
+    ctx.beginPath();
+    ctx.arc(pawRadius * 0.3, 0, pawRadius * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (cat.isScratching) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(pawRadius, -pawRadius * 0.4);
+      ctx.lineTo(pawRadius + r * 0.3, -pawRadius * 0.6);
+      ctx.moveTo(pawRadius, 0);
+      ctx.lineTo(pawRadius + r * 0.4, 0);
+      ctx.moveTo(pawRadius, pawRadius * 0.4);
+      ctx.lineTo(pawRadius + r * 0.3, pawRadius * 0.6);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Right Paw
+    ctx.save();
+    ctx.translate(pawDist + rightOffset, pawSpread);
+    ctx.fillStyle = pawColor;
+    ctx.beginPath();
+    ctx.arc(0, 0, pawRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ff7675';
+    ctx.beginPath();
+    ctx.arc(pawRadius * 0.3, 0, pawRadius * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (cat.isScratching) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(pawRadius, -pawRadius * 0.4);
+      ctx.lineTo(pawRadius + r * 0.3, -pawRadius * 0.6);
+      ctx.moveTo(pawRadius, 0);
+      ctx.lineTo(pawRadius + r * 0.4, 0);
+      ctx.moveTo(pawRadius, pawRadius * 0.4);
+      ctx.lineTo(pawRadius + r * 0.3, pawRadius * 0.6);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawOverheadHUD(ctx, cat, isLocalPlayer) {
+    const r = cat.radius;
+    const overheadY = -r * 1.35;
+
+    ctx.fillStyle = isLocalPlayer ? '#ff6b81' : '#ffffff';
+    ctx.font = 'bold 12px Fredoka, Nunito';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${cat.name} (${cat.size})`, cat.x, cat.y + overheadY - 7);
+
+    // HP Bar
+    const barW = Math.max(45, r * 1.3);
+    const barH = 5;
+    const barX = cat.x - barW / 2;
+    const barY = cat.y + overheadY;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW, barH, 2);
+    ctx.fill();
+
+    const hpRatio = Math.max(0, cat.hp / cat.maxHp);
+    ctx.fillStyle = hpRatio > 0.4 ? '#2ed573' : '#ff4757';
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW * hpRatio, barH, 2);
+    ctx.fill();
+  }
+
+  drawScratchEffects(ctx, dt) {
+    for (let i = this.scratchEffects.length - 1; i >= 0; i--) {
+      const s = this.scratchEffects[i];
+      s.life -= dt;
+      if (s.life <= 0) {
+        this.scratchEffects.splice(i, 1);
+        continue;
+      }
+
+      const alpha = s.life / s.maxLife;
+
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.angle);
+      ctx.strokeStyle = `rgba(255, 71, 87, ${alpha})`;
+      ctx.lineWidth = 3.5;
+
+      const len = 32;
+      for (let offset = -12; offset <= 12; offset += 12) {
+        ctx.beginPath();
+        ctx.moveTo(-len / 2, offset - 8);
+        ctx.lineTo(len / 2, offset + 8);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  drawParticles(ctx, dt) {
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.life -= dt;
+      if (p.life <= 0) {
+        this.particles.splice(i, 1);
+        continue;
+      }
+
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      const alpha = p.life / p.maxLife;
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    }
+  }
+
+  drawFloatingTexts(ctx, dt) {
+    for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+      const t = this.floatingTexts[i];
+      t.life -= dt;
+      t.y += t.vy;
+
+      if (t.life <= 0) {
+        this.floatingTexts.splice(i, 1);
+        continue;
+      }
+
+      ctx.save();
+      ctx.font = `bold ${t.size}px Fredoka`;
+      ctx.fillStyle = t.color;
+      ctx.globalAlpha = Math.min(1.0, t.life * 1.5);
+      ctx.textAlign = 'center';
+      ctx.fillText(t.text, t.x, t.y);
+      ctx.restore();
+    }
+  }
+
+  drawMinimap(ctx, mapSize, localPlayerId) {
+    if (!this.latestMinimap || this.latestMinimap.length === 0) return;
+
+    const isMobile = this.width < 900;
+    const size = isMobile ? 90 : 120;
+    const margin = 14;
+
+    const x = isMobile ? margin : this.width - size - margin;
+    const y = isMobile ? this.height - size - 170 : this.height - size - margin;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(20, 26, 45, 0.85)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.roundRect(x, y, size, size, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.font = 'bold 8px Fredoka';
+    ctx.textAlign = 'center';
+    ctx.fillText('🗺️ MAP', x + size / 2, y + 10);
+
+    for (let i = 0; i < this.latestMinimap.length; i++) {
+      const cat = this.latestMinimap[i];
+      const mx = x + (cat.x / mapSize) * size;
+      const my = y + (cat.y / mapSize) * size;
+
+      if (cat.isLeader) {
+        ctx.fillStyle = '#feca57';
+        ctx.beginPath();
+        ctx.arc(mx, my, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Local player dot
+    const myX = x + (this.camera.x / mapSize) * size;
+    const myY = y + (this.camera.y / mapSize) * size;
+    ctx.fillStyle = '#ff4757';
+    ctx.beginPath();
+    ctx.arc(myX, myY, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  getCatMainColor(skin) {
+    switch (skin) {
+      case 'white': return '#ffffff';
+      case 'orange': return '#e67e22';
+      case 'black': return '#2d3436';
+      case 'gray': return '#95a5a6';
+      case 'rabbit': return '#f5f6fa';
+      case 'fox': return '#e17055';
+      case 'lion': return '#f39c12';
+      case 'king': return '#fdcb6e';
+      case 'wizard': return '#6c5ce7';
+      default: return '#ffffff';
+    }
+  }
+
+  getCatPawColor(skin) {
+    switch (skin) {
+      case 'white': return '#f1f2f6';
+      case 'orange': return '#ffffff';
+      case 'black': return '#1e272e';
+      case 'gray': return '#dfe4ea';
+      default: return '#ffffff';
+    }
+  }
+}

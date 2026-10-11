@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Meow.io 🐱 - Game Mèo Thu Thập Ánh Sáng & Cào Đại Chiến</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Canvas Game Viewport -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- In-Game HUD -->
+  <div id="hud" class="hud-layer hidden">
+    <!-- Player Status (Top-Left) -->
+    <div class="hud-panel player-status">
+      <div class="status-header">
+        <span class="player-avatar" id="hudAvatar">🐱</span>
+        <div class="player-info">
+          <div class="player-name" id="hudPlayerName">Mèo Của Bạn</div>
+          <div class="player-tier" id="hudTier">🐱 Nhỏ (Size: 100)</div>
+        </div>
+      </div>
+      
+      <!-- HP Bar -->
+      <div class="bar-container hp-container">
+        <span class="bar-label">❤️ HP</span>
+        <div class="bar-track">
+          <div id="hpFill" class="bar-fill hp-fill" style="width: 100%;"></div>
+        </div>
+        <span class="bar-value" id="hpText">100/100</span>
+      </div>
+
+      <!-- Energy Bar -->
+      <div class="bar-container energy-container">
+        <span class="bar-label">⚡ STAMINA</span>
+        <div class="bar-track">
+          <div id="energyFill" class="bar-fill energy-fill" style="width: 100%;"></div>
+        </div>
+        <span class="bar-value" id="energyText">100/100</span>
+      </div>
+
+      <!-- Match Loot -->
+      <div class="match-loot">
+        <span class="loot-item">🪙 <span id="hudGold">0</span></span>
+        <span class="loot-item">🎲 <span id="hudDice">0</span></span>
+        <span class="loot-item mode-tag" id="hudModeTag">ONLINE</span>
+      </div>
+    </div>
+
+    <!-- Leaderboard Top 10 (Top-Right) -->
+    <div class="hud-panel leaderboard">
+      <div class="leaderboard-title">🏆 TOP 10 MÈO</div>
+      <ol id="leaderboardList" class="leaderboard-list">
+        <!-- Injected via JavaScript -->
+      </ol>
+    </div>
+
+    <!-- Kill Feed / Notifications -->
+    <div id="killFeed" class="kill-feed"></div>
+
+    <!-- Powerup Banner -->
+    <div id="buffBanner" class="buff-banner hidden"></div>
+
+    <!-- Mobile Controls -->
+    <div id="mobileControls" class="mobile-controls">
+      <div id="joystickZone" class="joystick-zone">
+        <div id="joystickBase" class="joystick-base">
+          <div id="joystickStick" class="joystick-stick"></div>
+        </div>
+      </div>
+      <button id="btnMobileBoost" class="btn-mobile-boost">
+        <span class="boost-icon">⚡</span>
+        <span class="boost-text">BOOST</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Menu / Start Screen -->
+  <div id="startScreen" class="modal-overlay">
+    <div class="modal-card main-menu-card">
+      <div class="game-logo">
+        <span class="logo-cat">🐱</span>
+        <h1>Meow.io</h1>
+        <p class="tagline">Thu Thập Ánh Sáng ✨ • Đớp Pate 🥫 • Cào Móng Vuốt 🐾</p>
+      </div>
+
+      <!-- Game Mode Switcher: Online vs Offline -->
+      <div class="mode-tabs">
+        <button id="modeOnlineBtn" class="mode-tab active" type="button">🌐 ONLINE (Đấu Mạng)</button>
+        <button id="modeOfflineBtn" class="mode-tab" type="button">🤖 OFFLINE (Chơi Máy)</button>
+      </div>
+
+      <!-- Player Wallet Bar -->
+      <div class="wallet-bar">
+        <div class="wallet-badge">🪙 Vàng: <span id="menuGold">0</span></div>
+        <div class="wallet-badge">🎲 Xúc Xắc: <span id="menuDice">0</span></div>
+        <button id="btnRollDice" class="btn-dice-roll">🎲 LẮC DICE (+Skin)</button>
+      </div>
+
+      <!-- Nickname Input -->
+      <div class="input-group">
+        <label for="playerNameInput">Đặt Tên Mèo:</label>
+        <input type="text" id="playerNameInput" maxlength="15" placeholder="Nhập tên mèo..." value="Mèo Hiệp Sĩ">
+      </div>
+
+      <!-- Skin Selection Slider -->
+      <div class="skin-selector-section">
+        <label>Chọn Skin Mèo:</label>
+        <div class="skin-carousel" id="skinCarousel">
+          <!-- Dynamically populated skins -->
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="menu-actions">
+        <button id="btnPlay" class="btn-primary">▶ VÀO TRẬN NGAY</button>
+      </div>
+
+      <!-- Download App Button (Visible on Web, Auto-Hidden inside App) -->
+      <div id="downloadAppWrapper" class="download-app-wrapper">
+        <button id="btnOpenDownloadModal" class="btn-download-app" type="button">
+          📱 TẢI APP ANDROID (.APK)
+        </button>
+      </div>
+
+      <!-- Controls Guidance -->
+      <div class="controls-guide">
+        <div class="guide-col">
+          <span class="guide-icon">🖱️</span>
+          <span><b>PC:</b> Chuột hướng đi • <b>Space / Double Click</b> để Tăng tốc ⚡</span>
+        </div>
+        <div class="guide-col">
+          <span class="guide-icon">📱</span>
+          <span><b>Mobile:</b> Cần ảo • <b>Double Tap / Nút Boost</b> để Tăng tốc ⚡</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameOverScreen" class="modal-overlay hidden">
+    <div class="modal-card game-over-card">
+      <div class="game-over-icon">💥</div>
+      <h2>MÈO ĐÃ BỊ HẠ!</h2>
+      <p class="game-over-subtitle">Bạn đã chiến đấu rất dũng cảm!</p>
+
+      <div class="result-stats">
+        <div class="stat-row">
+          <span>Kích thước tối đa:</span>
+          <strong id="finalScore" class="highlight-score">🐱 100</strong>
+        </div>
+        <div class="stat-row">
+          <span>Vàng thu thập:</span>
+          <strong id="finalGold">🪙 +0</strong>
+        </div>
+        <div class="stat-row">
+          <span>Xúc xắc ma thuật:</span>
+          <strong id="finalDice">🎲 +0</strong>
+        </div>
+      </div>
+
+      <div class="game-over-actions">
+        <button id="btnPlayAgain" class="btn-primary">🔄 CHƠI LẠI</button>
+        <button id="btnBackToMenu" class="btn-secondary">🏠 VỀ SẢNH CHỜ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dice Roll (Gacha) Modal -->
+  <div id="diceRollModal" class="modal-overlay hidden">
+    <div class="modal-card dice-roll-card">
+      <h2>🎲 VÒNG QUAY XÚC XẮC</h2>
+      <p>Dùng 1 Xúc Xắc để mở khóa Skin mới hoặc nhận Vàng thưởng!</p>
+      
+      <div class="dice-box">
+        <div id="animatedDice" class="dice-cube">🎲</div>
+      </div>
+
+      <div id="rollResult" class="roll-result hidden">
+        <div id="rollResultIcon" class="result-icon">✨</div>
+        <div id="rollResultText" class="result-text">Bạn nhận được...</div>
+      </div>
+
+      <div class="dice-actions">
+        <button id="btnDoRoll" class="btn-primary">🎲 QUAY NGAY (-1 Dice)</button>
+        <button id="btnCloseDiceModal" class="btn-secondary">ĐÓNG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download App Modal -->
+  <div id="downloadModal" class="modal-overlay hidden">
+    <div class="modal-card download-modal-card">
+      <h2>📱 TẢI APP MEOW.IO</h2>
+      <p>Trải nghiệm mượt mà 120 FPS trên điện thoại Android!</p>
+      
+      <div class="app-info-box">
+        <div class="app-icon">🐱</div>
+        <div class="app-details">
+          <h3>Meow.io Mobile</h3>
+          <p>Phiên bản 1.0.0 • Android 6.0+</p>
+        </div>
+      </div>
+
+      <div class="download-instructions">
+        <p>✅ Đã bao gồm project nguồn Android Studio trong thư mục <code>android/</code> của dự án.</p>
+        <p>✅ Có thể build trực tiếp thành file <code>.apk</code> chỉ với 1 click trong Android Studio.</p>
+      </div>
+
+      <div class="dice-actions">
+        <a id="btnDirectDownloadApk" href="/meow-io.apk" download="Meow.io.apk" class="btn-primary" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">
+          📥 TẢI XUỐNG .APK
+        </a>
+        <button id="btnCloseDownloadModal" class="btn-secondary" type="button">ĐÓNG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- Game Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/offline.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
