@@ -8,3 +8,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_0Z3AnWljGgzt@ep-green-breeze-b3164zko-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
