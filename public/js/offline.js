@@ -181,7 +181,7 @@ class OfflineEngine {
       let diff = cat.targetAngle - cat.angle;
       while (diff < -Math.PI) diff += Math.PI * 2;
       while (diff > Math.PI) diff -= Math.PI * 2;
-      cat.angle += Math.sign(diff) * Math.min(Math.abs(diff), 8.5 * dt);
+      cat.angle += Math.sign(diff) * Math.min(Math.abs(diff), 9.8 * dt);
 
       // Buff update
       let speedBuff = 1.0;
@@ -194,9 +194,11 @@ class OfflineEngine {
       }
 
       // Speed & Boost
-      let speed = 190 * (120 / (100 + cat.size * 0.15)) * speedBuff;
+      const baseSpeed = 280;
+      const sizeFactor = Math.max(0.72, 120 / (100 + cat.size * 0.06));
+      let speed = baseSpeed * sizeFactor * speedBuff;
       if (cat.isBoosting && cat.energy > 5) {
-        speed *= 1.75;
+        speed *= 1.7;
         cat.energy = Math.max(0, cat.energy - 35 * dt);
         if (cat.energy <= 0) cat.isBoosting = false;
       } else {

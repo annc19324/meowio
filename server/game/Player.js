@@ -21,9 +21,9 @@ class Player {
 
     // Movement & Boost
     this.isBoosting = false;
-    this.baseSpeed = 190; // Pixels per second
-    this.boostMultiplier = 1.75;
-    this.turnSpeed = 8.5; // Radian per second
+    this.baseSpeed = 280; // Pixels per second (Increased for fast, snappy movement)
+    this.boostMultiplier = 1.7;
+    this.turnSpeed = 9.8; // Radian per second for crisp steering
 
     // Combat & Scratch Mechanics
     this.attackCooldown = 0.45; // Seconds between scratches
@@ -73,7 +73,8 @@ class Player {
     }
 
     // 3. Energy & Boost Logic
-    let currentSpeed = this.baseSpeed * (120 / (100 + this.size * 0.15)) * speedBuff;
+    const sizeFactor = Math.max(0.72, 120 / (100 + this.size * 0.06));
+    let currentSpeed = this.baseSpeed * sizeFactor * speedBuff;
     if (this.isBoosting && this.energy > 5) {
       currentSpeed *= this.boostMultiplier;
       this.energy = Math.max(0, this.energy - 35 * dt);
