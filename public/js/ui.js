@@ -42,9 +42,19 @@ class UIController {
       this.currentUser = null;
     }
 
-    this.gold = parseInt(localStorage.getItem('meow_gold')) || 150; // Starter gold bonus
-    this.dice = parseInt(localStorage.getItem('meow_dice')) || 3;   // Starter dice bonus
-    this.unlockedSkins = JSON.parse(localStorage.getItem('meow_unlocked_skins')) || ['white', 'orange'];
+    const storedGold = localStorage.getItem('meow_gold');
+    this.gold = (storedGold !== null && !isNaN(parseInt(storedGold))) ? parseInt(storedGold) : 150;
+
+    const storedDice = localStorage.getItem('meow_dice');
+    this.dice = (storedDice !== null && !isNaN(parseInt(storedDice))) ? parseInt(storedDice) : 3;
+
+    let savedSkins = null;
+    try {
+      savedSkins = JSON.parse(localStorage.getItem('meow_unlocked_skins'));
+    } catch (e) {
+      savedSkins = null;
+    }
+    this.unlockedSkins = (Array.isArray(savedSkins) && savedSkins.length > 0) ? savedSkins : ['white', 'orange'];
     this.selectedSkin = localStorage.getItem('meow_selected_skin') || 'white';
     
     this.initDOM();
@@ -58,12 +68,14 @@ class UIController {
     if (!this.playerName || this.playerName === 'undefined' || this.playerName === 'null' || this.playerName.trim() === '') {
       this.playerName = 'Mèo Hiệp Sĩ';
     }
+    // Always persist to device's localStorage
     localStorage.setItem('meow_gold', this.gold);
     localStorage.setItem('meow_dice', this.dice);
     localStorage.setItem('meow_unlocked_skins', JSON.stringify(this.unlockedSkins));
     localStorage.setItem('meow_selected_skin', this.selectedSkin);
     localStorage.setItem('meow_player_name', this.playerName);
 
+    // If logged in, also mirror into user account object
     if (this.currentUser) {
       this.currentUser.gold = this.gold;
       this.currentUser.dice = this.dice;
@@ -72,9 +84,10 @@ class UIController {
       localStorage.setItem('meow_user_account', JSON.stringify(this.currentUser));
     }
 
-    if (typeof this.onInventoryChange === 'function') {
+    // Only notify cloud sync if logged into an account
+    if (this.currentUser && typeof this.onInventoryChange === 'function') {
       this.onInventoryChange({
-        username: this.playerName,
+        username: this.currentUser.username,
         gold: this.gold,
         dice: this.dice,
         unlockedSkins: this.unlockedSkins,
@@ -84,10 +97,13 @@ class UIController {
   }
 
   syncWithCloud(userData) {
-    if (!userData) return;
+    // Only accept cloud updates if player is logged in! Guests rely strictly on localStorage.
+    if (!this.currentUser || !userData) return;
     if (userData.gold !== undefined) this.gold = userData.gold;
     if (userData.dice !== undefined) this.dice = userData.dice;
-    if (userData.unlockedSkins) this.unlockedSkins = userData.unlockedSkins;
+    if (userData.unlockedSkins && Array.isArray(userData.unlockedSkins)) {
+      this.unlockedSkins = userData.unlockedSkins;
+    }
     if (userData.selectedSkin) this.selectedSkin = userData.selectedSkin;
     this.saveData();
     this.updateWalletUI();
@@ -99,11 +115,15 @@ class UIController {
     localStorage.setItem('meow_user_account', JSON.stringify(user));
     this.playerName = user.username;
     this.playerNameInput.value = user.username;
-    if (user.gold !== undefined) this.gold = user.gold;
-    if (user.dice !== undefined) this.dice = user.dice;
+
+    // Merge local guest skins and currency with account data so local progress is preserved!
+    const mergedSkins = new Set(this.unlockedSkins);
     if (user.unlocked_skins && Array.isArray(user.unlocked_skins)) {
-      this.unlockedSkins = user.unlocked_skins;
+      user.unlocked_skins.forEach(s => mergedSkins.add(s));
     }
+    this.unlockedSkins = Array.from(mergedSkins);
+    this.gold = Math.max(this.gold || 0, user.gold !== undefined ? user.gold : 0);
+    this.dice = Math.max(this.dice || 0, user.dice !== undefined ? user.dice : 0);
     if (user.selected_skin) {
       this.selectedSkin = user.selected_skin;
     }
@@ -114,7 +134,7 @@ class UIController {
 
     const authModal = document.getElementById('authModal');
     if (authModal) authModal.classList.add('hidden');
-    alert(`🎉 Chào mừng trở lại, ${user.username}! Toàn bộ dữ liệu tài khoản đã được đồng bộ.`);
+    alert(`🎉 Chào mừng ${user.username}! Dữ liệu tài khoản đã được đồng bộ lên Cloud.`);
   }
 
   logout() {

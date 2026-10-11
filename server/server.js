@@ -49,14 +49,16 @@ app.post('/api/login', async (req, res) => {
 // Initialize Game Engine (Online mode = Only Real Players, zero bots)
 const gameEngine = new GameEngine(io);
 
-// Track socket to username mapping
+// Track socket to authenticated username mapping (null for guests)
 const socketUserMap = new Map();
 
 gameEngine.onPlayerDeath = async (player) => {
-  const username = socketUserMap.get(player.id) || player.name;
-  if (username) {
-    console.log(`[Neon DB] Saving match stats for ${username}: Score ${player.size}, Gold +${player.gold}, Dice +${player.diceCount}`);
-    await db.saveUserMatch(username, {
+  const accountUsername = socketUserMap.get(player.id);
+  // Only save match rewards to database for registered/logged-in users!
+  // Guests have their gold/dice saved directly in their device's localStorage.
+  if (accountUsername) {
+    console.log(`[Neon DB] Saving match stats for logged-in user ${accountUsername}: Score ${player.size}, Gold +${player.gold}, Dice +${player.diceCount}`);
+    await db.saveUserMatch(accountUsername, {
       score: player.size,
       goldEarned: player.gold,
       diceEarned: player.diceCount
@@ -78,10 +80,12 @@ io.on('connection', (socket) => {
     if (typeof callback === 'function') callback(result);
   });
 
-  // Fetch or sync user profile
+  // Fetch or sync user profile (ONLY for authenticated logged-in accounts)
   socket.on('syncUserProfile', async (data) => {
-    const username = (data && data.name) ? String(data.name).trim().substring(0, 30) : 'Mèo';
-    const user = await db.getOrCreateUser(username);
+    const accountUsername = (data && data.accountUsername) ? String(data.accountUsername).trim().substring(0, 30) : null;
+    if (!accountUsername) return; // Ignore for guests
+
+    const user = await db.getOrCreateUser(accountUsername);
     if (user) {
       socket.emit('userProfileSynced', {
         username: user.username,
@@ -95,11 +99,11 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Save Shop purchases or Gacha Dice rolls to Cloud
+  // Save Shop purchases or Gacha Dice rolls to Cloud (ONLY for authenticated accounts)
   socket.on('updateCloudInventory', async (data) => {
-    const username = (data && data.username) ? String(data.username).trim().substring(0, 30) : null;
-    if (username) {
-      await db.updateUserInventory(username, {
+    const accountUsername = (data && data.accountUsername) ? String(data.accountUsername).trim().substring(0, 30) : null;
+    if (accountUsername) {
+      await db.updateUserInventory(accountUsername, {
         gold: data.gold,
         dice: data.dice,
         unlockedSkins: data.unlockedSkins,
@@ -111,11 +115,13 @@ io.on('connection', (socket) => {
   socket.on('joinGame', async (data) => {
     const name = (data && data.name) ? String(data.name).trim().substring(0, 16) : 'Mèo';
     const skin = (data && data.skin) ? String(data.skin) : 'white';
+    const accountUsername = (data && data.accountUsername) ? String(data.accountUsername).trim().substring(0, 30) : null;
 
-    socketUserMap.set(socket.id, name);
-
-    // Ensure user exists in database
-    await db.getOrCreateUser(name);
+    if (accountUsername) {
+      socketUserMap.set(socket.id, accountUsername);
+    } else {
+      socketUserMap.delete(socket.id); // Guest: no database connection
+    }
 
     const player = gameEngine.addPlayer(socket.id, name, skin);
     socket.emit('gameJoined', {

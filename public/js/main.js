@@ -33,11 +33,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (downloadAppWrapper) downloadAppWrapper.style.display = 'block';
   }
 
-  // Cloud Database Sync with Neon PostgreSQL
+  // Cloud Database Sync with Neon PostgreSQL (Only for Logged-In Accounts!)
   function requestCloudSync() {
-    if (socket.connected && gameMode === 'online') {
-      const currentName = ui.playerNameInput.value.trim() || 'Mèo';
-      socket.emit('syncUserProfile', { name: currentName });
+    if (socket.connected && gameMode === 'online' && ui.currentUser && ui.currentUser.username) {
+      socket.emit('syncUserProfile', { accountUsername: ui.currentUser.username });
     }
   }
 
@@ -46,7 +45,9 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   socket.on('userProfileSynced', (userData) => {
-    ui.syncWithCloud(userData);
+    if (ui.currentUser) {
+      ui.syncWithCloud(userData);
+    }
   });
 
   ui.playerNameInput.addEventListener('change', () => {
@@ -54,8 +55,11 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   ui.onInventoryChange = (invData) => {
-    if (socket.connected && gameMode === 'online') {
-      socket.emit('updateCloudInventory', invData);
+    if (socket.connected && gameMode === 'online' && ui.currentUser && ui.currentUser.username) {
+      socket.emit('updateCloudInventory', {
+        ...invData,
+        accountUsername: ui.currentUser.username
+      });
     }
   };
 
@@ -102,7 +106,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (gameMode === 'online') {
       offlineEngine.stop();
-      socket.emit('joinGame', { name, skin });
+      socket.emit('joinGame', {
+        name,
+        skin,
+        accountUsername: ui.currentUser ? ui.currentUser.username : null
+      });
     } else {
       // Launch Offline Engine
       localPlayerId = 'local_player';
