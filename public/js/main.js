@@ -1,7 +1,19 @@
 // Main Game Controller for Meow.io (Dual Mode: Online Multiplayer & Local Offline)
 window.addEventListener('DOMContentLoaded', () => {
-  const serverUrl = window.MEOW_SERVER_URL || (window.location.protocol.startsWith('http') ? window.location.origin : 'http://localhost:3000');
-  const socket = io(serverUrl);
+  let serverUrl = window.MEOW_SERVER_URL || localStorage.getItem('meow_server_url');
+  if (!serverUrl) {
+    if (window.location.hostname.endsWith('vercel.app')) {
+      // Default to Render backend when deployed on Vercel
+      serverUrl = 'https://meowio.onrender.com';
+    } else if (window.location.protocol.startsWith('http')) {
+      serverUrl = window.location.origin;
+    } else {
+      serverUrl = 'http://localhost:3000';
+    }
+  }
+  window.MEOW_SERVER_URL = serverUrl;
+
+  const socket = typeof io !== 'undefined' ? io(serverUrl, { reconnectionAttempts: 5, timeout: 10000 }) : null;
   const canvas = document.getElementById('gameCanvas');
   const renderer = new GameRenderer(canvas);
   const ui = new UIController();

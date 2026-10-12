@@ -22,6 +22,11 @@ const SKINS_CATALOG = [
 ];
 
 class UIController {
+  getApiUrl(endpoint) {
+    const base = (window.MEOW_SERVER_URL || '').replace(/\/$/, '');
+    return `${base}${endpoint}`;
+  }
+
   constructor() {
     this.currentUser = null;
     try {
@@ -340,7 +345,7 @@ class UIController {
         loginMsg.classList.remove('hidden');
 
         try {
-          const res = await fetch('/api/login', {
+          const res = await fetch(this.getApiUrl('/api/login'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ identifier, password })
@@ -375,7 +380,7 @@ class UIController {
         regMsg.classList.remove('hidden');
 
         try {
-          const res = await fetch('/api/register', {
+          const res = await fetch(this.getApiUrl('/api/register'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })
