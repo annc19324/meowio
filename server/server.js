@@ -172,9 +172,15 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, () => {
+// Health Check endpoint for Render / Cloud port scanners
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() });
+});
+
+const HOST = '0.0.0.0';
+server.listen(PORT, HOST, () => {
   console.log(`🐾 =========================================`);
-  console.log(`🐱 Meow.io Server running on http://localhost:${PORT}`);
+  console.log(`🐱 Meow.io Server running on http://${HOST}:${PORT}`);
   console.log(`✨ Mode: ONLINE (Pure Real Players) + Neon Cloud DB`);
   console.log(`🐾 =========================================`);
 });
