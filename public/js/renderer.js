@@ -88,10 +88,9 @@ class GameRenderer {
       this.camera.y += (me.y - this.camera.y) * 0.15;
 
       const isMobile = this.width < 900 || this.height < 550;
-      // Mobile zoom out more: base 0.58 down to 0.38 (twice as far view distance!)
-      const maxZoom = isMobile ? 0.58 : 0.95;
-      const minZoom = isMobile ? 0.38 : 0.65;
-      const targetZoom = Math.max(minZoom, maxZoom - (me.size - 100) * 0.00022);
+      const baseZoom = isMobile ? 0.75 : 1.0;
+      const minZoom = isMobile ? 0.62 : 0.82;
+      const targetZoom = Math.max(minZoom, baseZoom - Math.sqrt(Math.max(0, me.size - 100)) * 0.0018);
 
       this.camera.zoom += (targetZoom - this.camera.zoom) * 0.08;
     }
@@ -435,6 +434,7 @@ class GameRenderer {
 
   drawCat(ctx, cat, isLocalPlayer, animTime) {
     const r = cat.radius;
+    const level = cat.level || (cat.size >= 4500 ? 5 : cat.size >= 2000 ? 4 : cat.size >= 900 ? 3 : cat.size >= 350 ? 2 : 1);
 
     ctx.save();
     ctx.translate(cat.x, cat.y);
@@ -450,6 +450,12 @@ class GameRenderer {
       ctx.arc(trailX, trailY, r * 0.7, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    // Evolution Aura (Lv.2 - Lv.5)
+    this.drawEvolutionAura(ctx, r, level, animTime);
+
+    // Orbiting Energy Orbs (Lv.3 - Lv.5)
+    this.drawOrbitingOrbs(ctx, r, level, animTime);
 
     // Shield bubble
     if (cat.shieldHits > 0) {
@@ -537,13 +543,16 @@ class GameRenderer {
     // 4. Cat Eyes & Face
     this.drawCatFace(ctx, cat, r);
 
-    // 5. FRONT PAWS (2 CHÂN TRƯỚC)
+    // 5. Crown on head (Lv.3 - Lv.5)
+    this.drawCrown(ctx, r, level, animTime);
+
+    // 6. FRONT PAWS (2 CHÂN TRƯỚC)
     this.drawFrontPaws(ctx, cat, r, animTime);
 
     ctx.restore(); // Restore cat rotation
 
-    // 6. Overhead Health Bar & Nametag
-    this.drawOverheadHUD(ctx, cat, isLocalPlayer);
+    // 7. Overhead Health Bar & Nametag
+    this.drawOverheadHUD(ctx, cat, isLocalPlayer, level);
   }
 
   drawCatEars(ctx, cat, r) {
@@ -910,19 +919,244 @@ class GameRenderer {
     ctx.restore();
   }
 
-  drawOverheadHUD(ctx, cat, isLocalPlayer) {
+  drawEvolutionAura(ctx, r, level, animTime) {
+    if (level <= 1) return;
+
+    if (level === 2) {
+      // Lv.2 Mèo Chiến: subtle warrior pulse ring
+      const pulse = (Math.sin(animTime * 4.5) + 1) * 0.5;
+      ctx.strokeStyle = `rgba(52, 152, 219, ${0.4 + pulse * 0.3})`;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (1.15 + pulse * 0.08), 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (level === 3) {
+      // Lv.3 Mèo Chúa: golden aura ring with shimmering glow
+      const pulse = (Math.sin(animTime * 5.5) + 1) * 0.5;
+      ctx.strokeStyle = `rgba(241, 196, 15, ${0.5 + pulse * 0.35})`;
+      ctx.lineWidth = 3.0;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (1.20 + pulse * 0.10), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 234, 167, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.35, 0, Math.PI * 2);
+      ctx.stroke();
+    } else if (level === 4) {
+      // Lv.4 Hoàng Đế: blazing ruby/flame energy ring with outer rotating dash arcs
+      const pulse = (Math.sin(animTime * 6.5) + 1) * 0.5;
+      ctx.strokeStyle = `rgba(235, 77, 75, ${0.6 + pulse * 0.35})`;
+      ctx.lineWidth = 3.8;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (1.24 + pulse * 0.10), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.rotate(animTime * 2);
+      ctx.strokeStyle = 'rgba(255, 159, 26, 0.7)';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([12, 10]);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.38, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    } else if (level === 5) {
+      // Lv.5 Miêu Thần: prismatic cosmic/celestial radiance
+      const hue = (animTime * 140) % 360;
+      const pulse = (Math.sin(animTime * 7.5) + 1) * 0.5;
+
+      ctx.strokeStyle = `hsla(${hue}, 95%, 65%, ${0.75 + pulse * 0.25})`;
+      ctx.lineWidth = 4.2;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * (1.28 + pulse * 0.12), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.rotate(-animTime * 2.5);
+      ctx.strokeStyle = `hsla(${(hue + 180) % 360}, 100%, 75%, 0.8)`;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([14, 8]);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.44, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  drawOrbitingOrbs(ctx, r, level, animTime) {
+    if (level < 3) return;
+
+    const count = level === 3 ? 1 : (level === 4 ? 2 : 3);
+    const orbDist = r * (level === 3 ? 1.48 : (level === 4 ? 1.58 : 1.68));
+    const speed = level === 3 ? 3.0 : (level === 4 ? 3.6 : 4.4);
+
+    // Orbit path guide
+    ctx.save();
+    ctx.strokeStyle = level === 3 ? 'rgba(241, 196, 15, 0.2)' : (level === 4 ? 'rgba(235, 77, 75, 0.25)' : 'rgba(0, 210, 211, 0.3)');
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.arc(0, 0, orbDist, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    for (let i = 0; i < count; i++) {
+      const baseAngle = animTime * speed + (i * Math.PI * 2) / count;
+      const ox = Math.cos(baseAngle) * orbDist;
+      const oy = Math.sin(baseAngle) * orbDist;
+      const orbR = level === 3 ? 4.5 : (level === 4 ? 5.5 : 6.5);
+
+      // Trailing tail particles
+      for (let t = 1; t <= 3; t++) {
+        const trailAngle = baseAngle - t * 0.14;
+        const tx = Math.cos(trailAngle) * orbDist;
+        const ty = Math.sin(trailAngle) * orbDist;
+        const trailAlpha = 0.3 - t * 0.08;
+        const trailR = orbR * (1 - t * 0.22);
+
+        ctx.fillStyle = level === 3
+          ? `rgba(241, 196, 15, ${trailAlpha})`
+          : (level === 4 ? `rgba(255, 71, 87, ${trailAlpha})` : `rgba(0, 210, 211, ${trailAlpha})`);
+        ctx.beginPath();
+        ctx.arc(tx, ty, trailR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Outer glow
+      ctx.fillStyle = level === 3
+        ? 'rgba(241, 196, 15, 0.45)'
+        : (level === 4 ? 'rgba(255, 71, 87, 0.5)' : (i === 0 ? 'rgba(0, 210, 211, 0.6)' : (i === 1 ? 'rgba(255, 159, 243, 0.6)' : 'rgba(255, 211, 42, 0.6)')));
+      ctx.beginPath();
+      ctx.arc(ox, oy, orbR * 1.7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Orb body
+      ctx.fillStyle = level === 3
+        ? '#f1c40f'
+        : (level === 4 ? '#ff4757' : (i === 0 ? '#00d2d3' : (i === 1 ? '#ff9ff3' : '#ffd32a')));
+      ctx.beginPath();
+      ctx.arc(ox, oy, orbR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // White center core / glint
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(ox - orbR * 0.25, oy - orbR * 0.25, orbR * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  drawCrown(ctx, r, level, animTime) {
+    if (level < 3) return;
+
+    ctx.save();
+    // Gentle floating bob
+    const bob = Math.sin(animTime * 5.0) * (r * 0.05);
+    const cx = r * 0.05 + bob;
+
+    const w = level === 3 ? r * 0.32 : (level === 4 ? r * 0.36 : r * 0.40);
+    const h = level === 3 ? r * 0.38 : (level === 4 ? r * 0.44 : r * 0.52);
+
+    ctx.beginPath();
+    // Base of crown
+    ctx.moveTo(cx, -w);
+    // Left peak
+    ctx.lineTo(cx + h * 0.75, -w * 0.85);
+    // Left notch
+    ctx.lineTo(cx + h * 0.25, -w * 0.35);
+    // Center peak (highest)
+    ctx.lineTo(cx + h, 0);
+    // Right notch
+    ctx.lineTo(cx + h * 0.25, w * 0.35);
+    // Right peak
+    ctx.lineTo(cx + h * 0.75, w * 0.85);
+    // Base right
+    ctx.lineTo(cx, w);
+    ctx.closePath();
+
+    if (level === 3) {
+      // Golden Crown
+      ctx.fillStyle = '#f1c40f';
+      ctx.fill();
+      ctx.strokeStyle = '#d35400';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Center ruby gem
+      ctx.fillStyle = '#e74c3c';
+      ctx.beginPath();
+      ctx.arc(cx + h * 0.4, 0, r * 0.08, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (level === 4) {
+      // Royal Imperial Crown
+      ctx.fillStyle = '#ffd32a';
+      ctx.fill();
+      ctx.strokeStyle = '#e67e22';
+      ctx.lineWidth = 2.0;
+      ctx.stroke();
+
+      // Central ruby + side emeralds
+      ctx.fillStyle = '#ff4757';
+      ctx.beginPath();
+      ctx.arc(cx + h * 0.45, 0, r * 0.09, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#2ed573';
+      ctx.beginPath();
+      ctx.arc(cx + h * 0.35, -w * 0.55, r * 0.065, 0, Math.PI * 2);
+      ctx.arc(cx + h * 0.35, w * 0.55, r * 0.065, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (level === 5) {
+      // Mythic Celestial Diamond Crown
+      ctx.fillStyle = '#dfe4ea';
+      ctx.fill();
+      ctx.strokeStyle = '#3867d6';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      // Celestial Cyan Diamonds
+      ctx.fillStyle = '#00d2d3';
+      ctx.beginPath();
+      ctx.arc(cx + h * 0.5, 0, r * 0.10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ff9ff3';
+      ctx.beginPath();
+      ctx.arc(cx + h * 0.38, -w * 0.55, r * 0.075, 0, Math.PI * 2);
+      ctx.arc(cx + h * 0.38, w * 0.55, r * 0.075, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glint sparkle on center tip
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(cx + h, 0, r * 0.05, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  drawOverheadHUD(ctx, cat, isLocalPlayer, level = 1) {
     const r = cat.radius;
-    const overheadY = -r * 1.35;
+    const overheadY = -r * 1.45 - 8;
     const isMobile = this.width < 900 || this.height < 550;
 
-    const fontSize = isMobile ? Math.max(13, r * 0.4) : Math.max(12, r * 0.35);
+    let badge = '';
+    if (level === 5) badge = '💎 ';
+    else if (level === 4) badge = '🌟 ';
+    else if (level === 3) badge = '👑 ';
+    else if (level === 2) badge = '⚔️ ';
+
+    const fontSize = isMobile ? 14 : 13;
     ctx.fillStyle = isLocalPlayer ? '#ff6b81' : '#ffffff';
     ctx.font = `bold ${fontSize}px Fredoka, Nunito`;
     ctx.textAlign = 'center';
-    ctx.fillText(`${cat.name} (${cat.size})`, cat.x, cat.y + overheadY - 8);
+    ctx.fillText(`${badge}${cat.name} (${cat.size})`, cat.x, cat.y + overheadY - 8);
 
     // HP Bar
-    const barW = Math.max(isMobile ? 54 : 46, r * 1.35);
+    const barW = isMobile ? 56 : 50;
     const barH = isMobile ? 6 : 5;
     const barX = cat.x - barW / 2;
     const barY = cat.y + overheadY;

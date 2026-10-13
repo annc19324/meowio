@@ -42,12 +42,31 @@ class Player {
   }
 
   getRadius() {
-    // Smooth growth curve based on size
-    return 24 + Math.sqrt(this.size) * 1.6;
+    // Compact body cap: starts at 26px, gently scales up to max 38px
+    // Prevents giant bloated bodies from obscuring the screen on mobile/desktop!
+    return Math.min(38, 26 + Math.sqrt(Math.max(0, this.size - 100)) * 0.16);
+  }
+
+  getLevel() {
+    if (this.size >= 4500) return 5;
+    if (this.size >= 2000) return 4;
+    if (this.size >= 900) return 3;
+    if (this.size >= 350) return 2;
+    return 1;
+  }
+
+  getFoodSuctionReach() {
+    // High-level cats naturally vacuum food from slightly further away
+    return Math.min(26, Math.sqrt(Math.max(0, this.size - 100)) * 0.38);
+  }
+
+  getScratchBonus() {
+    // Higher evolution cats project longer phantom claw slashes
+    return Math.min(28, Math.sqrt(Math.max(0, this.size - 100)) * 0.42);
   }
 
   getScratchRange() {
-    return this.getRadius() * 1.5;
+    return this.getRadius() + 30 + this.getScratchBonus();
   }
 
   update(dt, mapSize) {
@@ -178,6 +197,7 @@ class Player {
       angle: Number(this.angle.toFixed(2)),
       size: Math.round(this.size),
       radius: Math.round(this.getRadius()),
+      level: this.getLevel(),
       hp: Math.round(this.hp),
       maxHp: this.maxHp,
       energy: Math.round(this.energy),

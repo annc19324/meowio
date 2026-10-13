@@ -273,7 +273,7 @@ class GameEngine {
       if (!attacker.alive || !attacker.canScratch()) continue;
 
       const attackerRadius = attacker.getRadius();
-      const scratchReach = attackerRadius + 30;
+      const scratchReach = 30 + (typeof attacker.getScratchBonus === 'function' ? attacker.getScratchBonus() : 0);
       const candidates = this.getNearbyCats(attacker.x, attacker.y, 1);
 
       for (const victim of candidates) {
@@ -350,12 +350,13 @@ class GameEngine {
     for (const cat of cats) {
       if (!cat.alive) continue;
       const catRadius = cat.getRadius();
+      const suctionReach = typeof cat.getFoodSuctionReach === 'function' ? cat.getFoodSuctionReach() : 0;
       const candidateFoods = this.getNearbyFoods(cat.x, cat.y, 1);
 
       for (const food of candidateFoods) {
         const dx = food.x - cat.x;
         const dy = food.y - cat.y;
-        const reach = catRadius + food.radius;
+        const reach = catRadius + food.radius + suctionReach;
 
         if (dx * dx + dy * dy <= reach * reach) {
           this.removeFood(food);

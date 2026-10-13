@@ -527,15 +527,14 @@ class UIController {
     this.energyFill.style.width = `${energyPercent}%`;
     this.energyText.textContent = `${player.energy}/100`;
 
-    // Tier based on Size
-    let tier = '🐱 Nhỏ';
-    if (player.size >= 1000) tier = '👑 Boss Khổng Lồ';
-    else if (player.size >= 700) tier = '🦁 Mèo Khổng Lồ';
-    else if (player.size >= 400) tier = '🐱 Rất Lớn';
-    else if (player.size >= 250) tier = '🐱 Lớn';
-    else if (player.size >= 150) tier = '🐱 Trưởng Thành';
+    // Evolution Tier based on Size
+    let tier = '🐱 Lv.1 Mèo Con';
+    if (player.size >= 4500) tier = '💎 Lv.5 Miêu Thần';
+    else if (player.size >= 2000) tier = '🌟 Lv.4 Hoàng Đế';
+    else if (player.size >= 900) tier = '👑 Lv.3 Mèo Chúa';
+    else if (player.size >= 350) tier = '⚔️ Lv.2 Mèo Chiến';
 
-    this.hudTier.textContent = `${tier} (Size: ${player.size})`;
+    this.hudTier.textContent = `${tier} (${player.size}đ)`;
     this.hudPlayerName.textContent = player.name;
     this.hudGold.textContent = player.gold;
     this.hudDice.textContent = player.diceCount;

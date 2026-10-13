@@ -115,7 +115,25 @@ class OfflineEngine {
   }
 
   getRadius(size) {
-    return 24 + Math.sqrt(size) * 1.6;
+    // Compact body cap: starts at 26px, gently scales up to max 38px
+    // Prevents giant bloated bodies from obscuring the screen!
+    return Math.min(38, 26 + Math.sqrt(Math.max(0, size - 100)) * 0.16);
+  }
+
+  getLevel(size) {
+    if (size >= 4500) return 5;
+    if (size >= 2000) return 4;
+    if (size >= 900) return 3;
+    if (size >= 350) return 2;
+    return 1;
+  }
+
+  getFoodSuctionReach(size) {
+    return Math.min(26, Math.sqrt(Math.max(0, size - 100)) * 0.38);
+  }
+
+  getScratchBonus(size) {
+    return Math.min(28, Math.sqrt(Math.max(0, size - 100)) * 0.42);
   }
 
   spawnFood() {
@@ -274,8 +292,9 @@ class OfflineEngine {
         const dx = victim.x - attacker.x;
         const dy = victim.y - attacker.y;
         const dist = Math.hypot(dx, dy);
+        const scratchBonus = this.getScratchBonus(attacker.size);
 
-        if (dist > attRadius + vicRadius + 30) continue;
+        if (dist > attRadius + vicRadius + 30 + scratchBonus) continue;
 
         let angleDiff = Math.atan2(dy, dx) - attacker.angle;
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
@@ -342,11 +361,15 @@ class OfflineEngine {
 
     // 3. Food Eating
     const playerRadius = this.getRadius(this.player.size);
+    const playerSuction = this.getFoodSuctionReach(this.player.size);
+    const totalReach = playerRadius + playerSuction;
+
     for (let i = this.foods.length - 1; i >= 0; i--) {
       const f = this.foods[i];
       const dx = f[2] - this.player.x;
       const dy = f[3] - this.player.y;
-      if (dx * dx + dy * dy <= (playerRadius + f[4]) * (playerRadius + f[4])) {
+      const reach = totalReach + f[4];
+      if (dx * dx + dy * dy <= reach * reach) {
         const type = f[1];
         if (type === 1) { this.player.size += 15; this.player.gold += 1; }
         else if (type === 2) { this.player.size += 45; this.player.gold += 3; }
@@ -417,6 +440,7 @@ class OfflineEngine {
       angle: c.angle,
       size: Math.round(c.size),
       radius: Math.round(this.getRadius(c.size)),
+      level: this.getLevel(c.size),
       hp: Math.round(c.hp),
       maxHp: 100,
       energy: Math.round(c.energy),
